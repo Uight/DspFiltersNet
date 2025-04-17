@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+      - name: ✨ Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 8.0.x
+          
+      - name: 🚚 DspFiltersNet Restore
+        run: dotnet restore DspFiltersNet.Tests
+      - name: 🛠️ DspFiltersNet Build
+        run: dotnet build DspFiltersNet.Tests --configuration Release --no-restore
+      - name: 🧪 DspFiltersNet Test
+        run: dotnet test DspFiltersNet.Tests --no-restore --verbosity minimal

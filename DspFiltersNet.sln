@@ -5,7 +5,7 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspFiltersNet", "DspFiltersNet\DspFiltersNet.csproj", "{480F5A04-B3DF-4340-A1DB-7E55515CFD1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspFiltersNetTests", "DspFiltersNetTests\DspFiltersNetTests.csproj", "{F235C379-E242-477D-8AC2-310725A01AFA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DspFiltersNet.Tests", "DspFiltersNet.Tests\DspFiltersNet.Tests.csproj", "{F235C379-E242-477D-8AC2-310725A01AFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

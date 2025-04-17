@@ -2,7 +2,7 @@
 using DspFiltersNet.FilterImplementations;
 using System.ComponentModel;
 
-namespace DspFiltersNetTests.FilterImplementations;
+namespace DspFiltersNet.Tests.FilterImplementations;
 
 //This test only tests the basic function of the filter instance. Not all filter configurations are tested as the configuration itself is tested by the FilterTools Test
 //Therefore it is enough to just test the instance with on filter configuration as the other will just work the same

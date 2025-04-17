@@ -1,7 +1,7 @@
 ﻿using DspFiltersNet.Filter;
 using DspFiltersNet.FilterImplementations;
 
-namespace DspFiltersNetTests.FilterImplementations;
+namespace DspFiltersNet.Tests.FilterImplementations;
 
 //This Test checks the calculations for the Filters. The Bessel and Butterworth classes are not directly testes but indirectly by using testing the FilterTool class which uses the other classes.
 //The Test for the filter instance is in the test for the library function "FilterCurve" at the moment

@@ -1,7 +1,7 @@
 ﻿using DspFiltersNet.Filter;
 using DspFiltersNet.FilterImplementations;
 
-namespace DspFiltersNetTests.FilterImplementations;
+namespace DspFiltersNet.Tests.FilterImplementations;
 
 [TestFixture]
 internal class MovingAverageInstanceTests
