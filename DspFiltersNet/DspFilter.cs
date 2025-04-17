@@ -9,7 +9,17 @@ public class DspFilter
 
     public DspFilter(IFilterDefinition filterDefinition)
     {
-
+        if (filterDefinition is MovingAverageFilterDefinition movingAverageFilterDefinition)
+        {
+            filterInstance = new MovingAverageInstance(movingAverageFilterDefinition);
+            return;
+        }
+        if (filterDefinition is FrequencyFilterDefinition frequencyFilterDefinition)
+        {
+            filterInstance = new FrequencyFilterInstance(frequencyFilterDefinition);
+            return;
+        }
+        throw new NotSupportedException($"Unsupported filter definition type: {filterDefinition.GetType().Name}");
     }
 
     public void ResetCalculation()
