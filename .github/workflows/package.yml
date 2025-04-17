@@ -1,0 +1,41 @@
+name: Deploy NuGet Packages
+
+on:
+  workflow_dispatch:  # manually trigger the workflow
+  label:  # run workflow when label/tag is created
+    types:
+      - created
+
+jobs:
+  deploy:
+    name: 🚀 Publish Packages
+    runs-on: windows-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+
+      - name: ✨ Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 8.0.x
+
+      - name: 🛠️ Setup NuGet
+        uses: nuget/setup-nuget@v1
+        with:
+          nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+
+      - name: 🚀 Publish DspFiltersNet
+        run: |
+          dotnet restore DspFiltersNet/DspFiltersNet.csproj
+          dotnet build DspFiltersNet/DspFiltersNet.csproj --configuration Release
+          dotnet pack DspFiltersNet/DspFiltersNet.csproj --configuration Release
+          nuget push "DspFiltersNet\bin\Release\*.nupkg" -SkipDuplicate -Source https://api.nuget.org/v3/index.json
+
+      - name: 💾 Store Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: DspFiltersNet-Packages
+          retention-days: 3
+          path: |
+            DspFiltersNet/bin/Release/*.nupkg
+            DspFiltersNet/bin/Release/*.snupkg

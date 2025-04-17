@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+
+    <Authors>Uight</Authors>
+    <Description>Small Filter implementation providing Bessel and Butterworth filters for .NET</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Uight/DspFiltersNet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Uight/DspFiltersNet</RepositoryUrl>
+    <PackageTags>DSP Frequency Filter Bessel Butterworth</PackageTags>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.0.1</Version>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+</Project>
