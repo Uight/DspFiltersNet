@@ -8,7 +8,7 @@ namespace DspFiltersNet.Tests.FilterImplementations;
 internal class ChebyshevITests
 {
     [Test]
-    public void Chebyshev_Type1_TestPoles()
+    public void Chebyshev_Type1_TestPoles_FilterOrder4()
     {
         double referenceGain = 0.031324290406487;
 
@@ -47,7 +47,42 @@ internal class ChebyshevITests
     }
 
     [Test]
-    public void Chebyshev_Type1_TestPolesWithFilterOrder1()
+    public void Chebyshev_Type1_TestPoles_FilterOrder2()
+    {
+        double referenceGain = 0.566763970129022;
+
+        Complex[] referencePoles = new Complex[]
+        {
+            new Complex(-0.357625433341244, +0.792398858260480),
+            new Complex(-0.357625433341244, -0.792398858260480)
+        };
+
+        var calculatedPrototype = ChebyshevI.PrototypeAnalogLowPass(2, 2.5);
+
+        // Sort both by real part (then imag part) to align them
+        var sortedExpected = referencePoles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
+        var sortedActual = calculatedPrototype.poles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(calculatedPrototype.gain, Is.EqualTo(referenceGain).Within(1e-8), "Gain mismatch");
+            Assert.That(calculatedPrototype.poles, Has.Count.EqualTo(referencePoles.Length), "Pole count mismatch.");
+
+            for (int i = 0; i < sortedExpected.Length; i++)
+            {
+                var expected = sortedExpected[i];
+                var actual = sortedActual[i];
+
+                Assert.That(actual.Real, Is.EqualTo(expected.Real).Within(1e-8),
+                    $"Mismatch at index {i} (Real part)");
+                Assert.That(actual.Imaginary, Is.EqualTo(expected.Imaginary).Within(1e-8),
+                    $"Mismatch at index {i} (Imaginary part)");
+            }
+        });
+    }
+
+    [Test]
+    public void Chebyshev_Type1_TestPoles_FilterOrder1()
     {
         double referenceGain = 1.002377293007601;
 
