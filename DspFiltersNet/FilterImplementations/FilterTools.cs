@@ -55,21 +55,21 @@ internal static class FilterTools
         // A lowPass prototype has no zeros so only poles are set.
         var poles = lowPassPrototypePoles;
         var zeros = new List<Complex>();
-        
-        //Initialize gain with the lowPassProtoypeGain which in most cases is 1.
-        var gain = lowPassPrototypeGain;
+
+        //Initialize gain with 1 as the gain for a lowPass prototype is 1.
+        var gain = 1.0;
 
         // Convert analogue lowPass prototype to target filter type
         switch (frequencyFilterType)
         {
             case FrequencyFilterType.LowPass:
-                gain *= Convert2LowPass(warpedLow, ref poles);
+                gain = Convert2LowPass(warpedLow, ref poles) * lowPassPrototypeGain;
                 break;
             case FrequencyFilterType.HighPass:
                 Convert2HighPass(warpedHigh, ref poles, out zeros);
                 break;
             case FrequencyFilterType.BandPass:
-                gain *= Convert2BandPass(warpedLow, warpedHigh, ref poles, out zeros);
+                gain = Convert2BandPass(warpedLow, warpedHigh, ref poles, out zeros) * lowPassPrototypeGain;
                 filterOrder *= 2;
                 break;
             case FrequencyFilterType.BandStop:
