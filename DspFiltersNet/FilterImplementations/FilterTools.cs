@@ -1,5 +1,4 @@
 ﻿using DspFiltersNet.Filter;
-using System.ComponentModel;
 using System.Numerics;
 
 namespace DspFiltersNet.FilterImplementations;
@@ -12,82 +11,7 @@ namespace DspFiltersNet.FilterImplementations;
 /// </summary>
 internal static class FilterTools
 {
-    /// <summary>
-    /// Calculate IIR Filter transferFunction coefficients
-    /// As in MATLAB => [z,p,k] = butter(n, Wn, ...)
-    ///              => [z,p,k] = bessel(n, Wn, ...)
-    ///
-    /// In contrast to matlab this method does not require to normalize the frequencies before calling.
-    /// If BandPass or BandStop is selected the actual order of the filter created is double that of the specified order.
-    /// </summary>
-    /// <param name="designType"></param>
-    /// <param name="frequencyFilterType"></param>
-    /// <param name="freqSampling"></param>
-    /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
-    /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
-    /// <param name="filterOrder"></param>
-    /// <returns> zeros(z), poles(p) and gain(k) for the specified filter settings </returns>
-    public static Zpk CalcZpk(FrequencyFilterDesignType designType, FrequencyFilterType frequencyFilterType, 
-        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder)
-    {
-        FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-
-        List<Complex> lowPassPrototypePoles;
-        switch (designType)
-        {
-            case FrequencyFilterDesignType.Butterworth:
-                lowPassPrototypePoles = Butterworth.PrototypeAnalogLowPass(filterOrder);
-                break;
-            case FrequencyFilterDesignType.Bessel:
-                lowPassPrototypePoles = Bessel.PrototypeAnalogLowPass(filterOrder);
-                break;
-            default:
-                throw new InvalidEnumArgumentException(nameof(designType), (int)designType, typeof(FrequencyFilterDesignType));
-        }
-
-        CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototypePoles!, out var zpk, out _);
-        
-        return zpk;
-    }
-
-    /// <summary>
-    /// Calculate IIR Filter transferFunction coefficients
-    /// As in MATLAB => [b,a] = butter(n, Wn, ...)
-    ///              => [b,a] = bessel(n, Wn, ...)
-    ///
-    /// In contrast to matlab this method does not require to normalize the frequencies before calling.
-    /// If BandPass or BandStop is selected the actual order of the filter created is double that of the specified order.
-    /// </summary>
-    /// <param name="designType"></param>
-    /// <param name="frequencyFilterType"></param>
-    /// <param name="freqSampling"></param>
-    /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
-    /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
-    /// <param name="filterOrder"></param>
-    /// <returns> numerator(b) and denominator(a) for the specified filter settings </returns>
-    public static TransferFunction CalcTransferFunction(FrequencyFilterDesignType designType, FrequencyFilterType frequencyFilterType, 
-        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder)
-    {
-        FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-
-        List<Complex> lowPassPrototypePoles;
-        switch (designType)
-        {
-            case FrequencyFilterDesignType.Butterworth:
-                lowPassPrototypePoles = Butterworth.PrototypeAnalogLowPass(filterOrder);
-                break;
-            case FrequencyFilterDesignType.Bessel:
-                lowPassPrototypePoles = Bessel.PrototypeAnalogLowPass(filterOrder);
-                break;
-            default:
-                throw new InvalidEnumArgumentException(nameof(designType), (int)designType, typeof(FrequencyFilterDesignType));
-        }
-
-        CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototypePoles!, out _, out var tf);
-        return tf;
-    }
-
-    private static void FrequencyVerification(FrequencyFilterType frequencyFilterType, double freqSampling, double freqLowCutOff, double freqHighCutOff)
+    public static void FrequencyVerification(FrequencyFilterType frequencyFilterType, double freqSampling, double freqLowCutOff, double freqHighCutOff)
     {
         var freqSamplingQuarter = freqSampling / 4;
 
@@ -121,8 +45,8 @@ internal static class FilterTools
         }
     }
     
-    private static void CalcFilterSettings(FrequencyFilterType frequencyFilterType, double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, List<Complex> lowPassPrototypePoles,
-        out Zpk zpk, out TransferFunction tf)
+    public static (Zpk zpk, TransferFunction tf) CalcFilterSettings(FrequencyFilterType frequencyFilterType, double freqSampling, double freqLowCutOff, double freqHighCutOff, 
+        int filterOrder, List<Complex> lowPassPrototypePoles, double lowPassPrototypeGain = 1.0)
     {
         // Pre-warp frequencies
         var warpedLow = 2 * Math.Tan(Math.PI * freqLowCutOff / freqSampling);
@@ -132,20 +56,20 @@ internal static class FilterTools
         var poles = lowPassPrototypePoles;
         var zeros = new List<Complex>();
         
-        //Initialize gain with 1 as the gain for a lowPass prototype is 1.
-        var gain = 1.0;
+        //Initialize gain with the lowPassProtoypeGain which in most cases is 1.
+        var gain = lowPassPrototypeGain;
 
         // Convert analogue lowPass prototype to target filter type
         switch (frequencyFilterType)
         {
             case FrequencyFilterType.LowPass:
-                gain = Convert2LowPass(warpedLow, ref poles);
+                gain *= Convert2LowPass(warpedLow, ref poles);
                 break;
             case FrequencyFilterType.HighPass:
                 Convert2HighPass(warpedHigh, ref poles, out zeros);
                 break;
             case FrequencyFilterType.BandPass:
-                gain = Convert2BandPass(warpedLow, warpedHigh, ref poles, out zeros);
+                gain *= Convert2BandPass(warpedLow, warpedHigh, ref poles, out zeros);
                 filterOrder *= 2;
                 break;
             case FrequencyFilterType.BandStop:
@@ -167,8 +91,9 @@ internal static class FilterTools
         var overallGain = preBltGain * (preBltGain / gain); //For highPass and bandStop preBltGain is 1. This simplifies the formula to 1 / gain
         
         Zpk2Tf(zeros, poles, overallGain, out var a, out var b);
-        zpk = new Zpk(zeros.ToArray(), poles.ToArray(), overallGain);
-        tf = new TransferFunction(b, a);
+        var zpk = new Zpk(zeros.ToArray(), poles.ToArray(), overallGain);
+        var tf = new TransferFunction(b, a);
+        return (zpk, tf);
     }
 
     /// <summary>

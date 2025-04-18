@@ -1,4 +1,5 @@
 ﻿using DspFiltersNet.Filter;
+using System.ComponentModel;
 
 namespace DspFiltersNet.FilterImplementations;
 
@@ -13,8 +14,19 @@ internal class FrequencyFilterInstance : FilterInstanceBase
 
     public FrequencyFilterInstance(FrequencyFilterDefinition filterData)
     {
-        var tf = FilterTools.CalcTransferFunction(filterData.FilterDesignType, filterData.FilterType, filterData.SamplingFrequency, filterData.CutoffFrequencyLow, filterData.CutoffFrequencyHigh, filterData.FilterOrder);
-        
+        TransferFunction tf;
+        switch (filterData.FilterDesignType)
+        {
+            case FrequencyFilterDesignType.Butterworth:
+                tf = Butterworth.CalcTransferFunction(filterData.FilterType, filterData.SamplingFrequency, filterData.CutoffFrequencyLow, filterData.CutoffFrequencyHigh, filterData.FilterOrder);
+                break;
+            case FrequencyFilterDesignType.Bessel:
+                tf = Bessel.CalcTransferFunction(filterData.FilterType, filterData.SamplingFrequency, filterData.CutoffFrequencyLow, filterData.CutoffFrequencyHigh, filterData.FilterOrder);
+                break;
+            default:
+                throw new InvalidEnumArgumentException(nameof(filterData.FilterDesignType), (int)filterData.FilterDesignType, typeof(FrequencyFilterDesignType));
+        }
+
         numerator = tf.B;
         denominator = tf.A;
         size = denominator.Length;

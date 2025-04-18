@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using DspFiltersNet.Filter;
 using MathNet.Numerics;
 
 namespace DspFiltersNet.FilterImplementations;
@@ -21,6 +22,50 @@ internal static class Bessel
             throw new ArgumentOutOfRangeException(nameof(filterOrder));
         }
         return GetPoles(filterOrder);
+    }
+
+    /// <summary>
+    /// Calculate IIR Filter transferFunction coefficients
+    /// As in MATLAB => [z,p,k] = bessel(n, Wn, ...)
+    ///
+    /// In contrast to matlab this method does not require to normalize the frequencies before calling.
+    /// If BandPass or BandStop is selected the actual order of the filter created is double that of the specified order.
+    /// </summary>
+    /// <param name="frequencyFilterType"></param>
+    /// <param name="freqSampling"></param>
+    /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
+    /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
+    /// <param name="filterOrder"></param>
+    /// <returns> zeros(z), poles(p) and gain(k) for the specified filter settings </returns>
+    public static Zpk CalcZpk(FrequencyFilterType frequencyFilterType,
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder)
+    {
+        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
+        var lowPassPrototypePoles = PrototypeAnalogLowPass(filterOrder);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototypePoles);
+        return filter.zpk;
+    }
+
+    /// <summary>
+    /// Calculate IIR Filter transferFunction coefficients
+    /// As in MATLAB => [b,a] = bessel(n, Wn, ...)
+    ///
+    /// In contrast to matlab this method does not require to normalize the frequencies before calling.
+    /// If BandPass or BandStop is selected the actual order of the filter created is double that of the specified order.
+    /// </summary>
+    /// <param name="frequencyFilterType"></param>
+    /// <param name="freqSampling"></param>
+    /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
+    /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
+    /// <param name="filterOrder"></param>
+    /// <returns> numerator(b) and denominator(a) for the specified filter settings </returns>
+    public static TransferFunction CalcTransferFunction(FrequencyFilterType frequencyFilterType,
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder)
+    {
+        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
+        var lowPassPrototypePoles = PrototypeAnalogLowPass(filterOrder);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototypePoles);
+        return filter.tf;
     }
 
     private static List<Complex> GetPoles(int order)
