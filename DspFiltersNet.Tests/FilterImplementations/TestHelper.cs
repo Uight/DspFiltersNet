@@ -10,14 +10,18 @@ internal class TestHelper
         {
             Assert.That(actual.K, Is.EqualTo(expected.K).Within(1.0e-14), "Gain incorrect");
 
+            // Sort zeros by real part (then imag part) to align them
+            var sortedExpectedZeros = expected.Z.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
+            var sortedActualZeros = actual.Z.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
+
             Assert.That(actual.Z, Has.Length.EqualTo(expected.Z.Length), "Zeros length not matching");
             for (var i = 0; i < actual.Z.Length; i++)
             {
-                Assert.That(actual.Z[i].Real, Is.EqualTo(expected.Z[i].Real).Within(1.0e-14), "Real of zero does not match");
-                Assert.That(actual.Z[i].Imaginary, Is.EqualTo(expected.Z[i].Imaginary).Within(1.0e-14), "Imag of zero does not match");
+                Assert.That(sortedActualZeros[i].Real, Is.EqualTo(sortedExpectedZeros[i].Real).Within(1.0e-14), "Real of zero does not match");
+                Assert.That(sortedActualZeros[i].Imaginary, Is.EqualTo(sortedExpectedZeros[i].Imaginary).Within(1.0e-14), "Imag of zero does not match");
             }
 
-            // Sort both by real part (then imag part) to align them
+            // Sort poles by real part (then imag part) to align them
             var sortedExpectedPoles = expected.P.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
             var sortedActualPoles = actual.P.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
 
