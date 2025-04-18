@@ -562,7 +562,7 @@ internal class FilterToolsTests
         });
     }
     
-    [TestCase(12)]
+    [TestCase(15)]
     public void CalcButterworthZpkOrderOutOfRange(int order)
     {
         //Arrange
@@ -571,7 +571,7 @@ internal class FilterToolsTests
         Assert.Throws<ArgumentOutOfRangeException>(() => FilterTools.CalcZpk(FrequencyFilterDesignType.Butterworth, FrequencyFilterType.LowPass, 1000, 10, 0, order));
     }
     
-    [TestCase(12)]
+    [TestCase(15)]
     public void CalcButterworthTransferFunctionOrderOutOfRange(int order)
     {
         //Arrange
@@ -580,7 +580,7 @@ internal class FilterToolsTests
         Assert.Throws<ArgumentOutOfRangeException>(() => FilterTools.CalcTransferFunction(FrequencyFilterDesignType.Butterworth, FrequencyFilterType.LowPass, 1000, 10, 0, order));
     }
     
-    [TestCase(10)]
+    [TestCase(15)]
     public void CalcBesselZpkOrderOutOfRange(int order)
     {
         //Arrange
@@ -589,7 +589,7 @@ internal class FilterToolsTests
         Assert.Throws<ArgumentOutOfRangeException>(() => FilterTools.CalcZpk(FrequencyFilterDesignType.Bessel, FrequencyFilterType.LowPass, 1000, 10, 0, order));
     }
     
-    [TestCase(10)]
+    [TestCase(15)]
     public void CalcBesselTransferFunctionOrderOutOfRange(int order)
     {
         //Arrange

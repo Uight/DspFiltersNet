@@ -13,7 +13,7 @@ internal static class Butterworth
     /// <returns> Poles of the Butterworth analog lowPass filter prototype of the specified order </returns>
     public static List<Complex> PrototypeAnalogLowPass(int filterOrder)
     {
-        if (filterOrder < 1 || filterOrder > 10)
+        if (filterOrder < 1 || filterOrder > 14)
         {
             throw new ArgumentOutOfRangeException(nameof(filterOrder));
         }

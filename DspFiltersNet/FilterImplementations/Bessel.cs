@@ -14,9 +14,9 @@ internal static class Bessel
     /// <returns> Poles of the Bessel analog lowPass filter prototype of the specified order </returns>
     public static List<Complex> PrototypeAnalogLowPass(int filterOrder)
     {
-        // The bessel polynomial has pretty high numbers pretty fast. With current implementation this leads
-        // to precision loss pretty fast, which is why the max order is limited to 8.
-        if (filterOrder < 1 || filterOrder > 8)
+        // The bessel polynomial has pretty high numbers pretty fast. Using BigInteger enables
+        // orders higher than 10 but above 14 the Roots function starts failing
+        if (filterOrder < 1 || filterOrder > 14)
         {
             throw new ArgumentOutOfRangeException(nameof(filterOrder));
         }
@@ -45,20 +45,22 @@ internal static class Bessel
         var a = new List<double>();
         for (var i = 0; i <= order; i++)
         {
-            var num = Factorial(2 * order - i);
-            var den = Convert.ToInt64(Math.Pow(2, order - i) * (Factorial(i) * Factorial(order - i)));
-            a.Add(Convert.ToDouble(num / den));
+            BigInteger num = Factorial(2 * order - i);
+            BigInteger den = BigInteger.Pow(2, order - i) * Factorial(i) * Factorial(order - i);
+            double result = (double)(num / den);
+            a.Add(result);
         }
 
         return a;
     }
 
-    private static long Factorial(long f)
+    private static BigInteger Factorial(int n)
     {
-        if (f <= 1)
+        BigInteger result = 1;
+        for (int i = 2; i <= n; i++)
         {
-            return 1;
-        }
-        return f * Factorial(f - 1);
+            result *= i;
+        }   
+        return result;
     }
 }
