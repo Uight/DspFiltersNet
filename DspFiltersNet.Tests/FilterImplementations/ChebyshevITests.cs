@@ -8,7 +8,7 @@ namespace DspFiltersNet.Tests.FilterImplementations;
 internal class ChebyshevITests
 {
     [Test]
-    public void Chebyshev_Type1_TestPoles_FilterOrder4()
+    public void Chebyshev_Type1_TestPoles_FilterOrder6()
     {
         double referenceGain = 0.031324290406487;
 
