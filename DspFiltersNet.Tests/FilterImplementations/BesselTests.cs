@@ -9,9 +9,7 @@ internal class BesselTests
     [Test]
     public void TestBesselLimits()
     {
-        // MATLAB pole values for Bessel filter of order 14 (as complex numbers)
-        // Replace with actual MATLAB results, these are just placeholders
-        Complex[] matlabPoles = new Complex[]
+        Complex[] referencePoles = new Complex[]
         {
             new Complex(-0.907793213839649, -0.082196399419402),
             new Complex(-0.907793213839649, +0.082196399419402),
@@ -32,12 +30,12 @@ internal class BesselTests
         var calculatedPoles = Bessel.PrototypeAnalogLowPass(14);
 
         // Sort both by real part (then imag part) to align them
-        var sortedExpected = matlabPoles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
+        var sortedExpected = referencePoles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
         var sortedActual = calculatedPoles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
 
         Assert.Multiple(() =>
         {
-            Assert.That(calculatedPoles, Has.Count.EqualTo(matlabPoles.Length), "Pole count mismatch.");
+            Assert.That(calculatedPoles, Has.Count.EqualTo(referencePoles.Length), "Pole count mismatch.");
 
             for (int i = 0; i < sortedExpected.Length; i++)
             {
