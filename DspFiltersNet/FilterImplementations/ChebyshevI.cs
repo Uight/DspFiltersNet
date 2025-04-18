@@ -42,7 +42,15 @@ internal class ChebyshevI
             product *= -p;
         }
 
-        var gain = (1.0 / Math.Sqrt(1 + epsilon * epsilon)) * product.Magnitude;
+        double gain;
+        if (filterOrder % 2 != 0)
+        {
+            gain = product.Magnitude;
+        }
+        else
+        {
+            gain = (1.0 / Math.Sqrt(1 + epsilon * epsilon)) * product.Magnitude;
+        }
 
         return (poles, gain);
     }
