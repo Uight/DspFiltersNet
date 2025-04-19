@@ -85,8 +85,7 @@ internal class ChebyshevII
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
         var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        //ToDo: handling of lowPass prototype zeros completly missing
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain, lowPassPrototype.zeros);
         return filter.zpk;
     }
 
@@ -109,8 +108,7 @@ internal class ChebyshevII
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
         var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        //ToDo: handling of lowPass prototype zeros completly missing
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain, lowPassPrototype.zeros);
         return filter.tf;
     }
 }

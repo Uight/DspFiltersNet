@@ -46,7 +46,7 @@ internal static class FilterTools
     }
     
     public static (Zpk zpk, TransferFunction tf) CalcFilterSettings(FrequencyFilterType frequencyFilterType, double freqSampling, double freqLowCutOff, double freqHighCutOff, 
-        int filterOrder, List<Complex> lowPassPrototypePoles, double lowPassPrototypeGain = 1.0)
+        int filterOrder, List<Complex> lowPassPrototypePoles, double lowPassPrototypeGain = 1.0, List<Complex>? lowPassPrototypeZeros = null)
     {
         // Pre-warp frequencies
         var warpedLow = 2 * Math.Tan(Math.PI * freqLowCutOff / freqSampling);
@@ -54,7 +54,7 @@ internal static class FilterTools
 
         // A lowPass prototype has no zeros so only poles are set.
         var poles = lowPassPrototypePoles;
-        var zeros = new List<Complex>();
+        var zeros = lowPassPrototypeZeros ?? [];
 
         //Initialize gain with 1 as the gain for a lowPass prototype is 1.
         var gain = 1.0;
@@ -63,7 +63,7 @@ internal static class FilterTools
         switch (frequencyFilterType)
         {
             case FrequencyFilterType.LowPass:
-                gain = Convert2LowPass(warpedLow, ref poles) * lowPassPrototypeGain;
+                gain = Convert2LowPass(warpedLow, ref poles, ref zeros, lowPassPrototypeGain);
                 break;
             case FrequencyFilterType.HighPass:
                 Convert2HighPass(warpedHigh, ref poles, out zeros);
@@ -99,19 +99,29 @@ internal static class FilterTools
     public static double Asinh(double x) => Math.Log(x + Math.Sqrt(x * x + 1));
 
     /// <summary>
-    /// Convert analog lowPass prototype poles to lowPass poles
-    /// using:  lowPassPole = wc * lowPassPT_Pole
+    /// Converts an analog lowpass prototype (with poles, optional zeros, and optional gain)
+    /// to a lowpass filter with a specified cutoff frequency.
+    /// using: lowPassPole = wc * lowPassPT_Pole
     /// </summary>
-    private static double Convert2LowPass(double lowCutOff, ref List<Complex> poles)
+    private static double Convert2LowPass(
+        double lowCutOff,
+        ref List<Complex> poles,
+        ref List<Complex> zeros,
+        double prototypeGain)
     {
         var wc = lowCutOff;
 
-        var gain = Math.Pow(wc, poles.Count);
-        
         for (var i = 0; i < poles.Count; i++)
         {
-            poles[i] = wc * poles[i];
+            poles[i] *= wc;
         }
+
+        for (int i = 0; i < zeros.Count; i++)
+        {
+            zeros[i] *= wc;
+        }
+
+        var gain = prototypeGain * Math.Pow(wc, poles.Count - zeros.Count);
 
         return gain;
     }

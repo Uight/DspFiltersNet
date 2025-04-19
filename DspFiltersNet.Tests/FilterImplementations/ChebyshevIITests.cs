@@ -119,7 +119,6 @@ internal class ChebyshevIITests
 
 
     [TestCaseSource(nameof(ZpkTestDataChebyshevII))]
-    [Ignore("Ignore these tests as the handling of prototype zeros is just not implemented")]
     public void CalcZpkTestsChebyshevI(FrequencyFilterType frequencyFilterType, double sourceFrequency, double lowCutOff, double highCutoff, int order, double rippleDb, Zpk expectedZpk)
     {
         //Arrange + Act
