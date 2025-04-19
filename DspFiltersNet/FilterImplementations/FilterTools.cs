@@ -96,6 +96,8 @@ internal static class FilterTools
         return (zpk, tf);
     }
 
+    public static double Asinh(double x) => Math.Log(x + Math.Sqrt(x * x + 1));
+
     /// <summary>
     /// Convert analog lowPass prototype poles to lowPass poles
     /// using:  lowPassPole = wc * lowPassPT_Pole

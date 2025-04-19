@@ -6,12 +6,12 @@ namespace DspFiltersNet.FilterImplementations;
 internal class ChebyshevI
 {
     /// <summary>
-    /// Bessel lowPass prototype.
+    /// Chebyshev Type I lowPass prototype.
     /// As in MATLAB => [z,p,k] = cheb1ap(order, Rp)
     /// </summary>
     /// <param name="filterOrder"></param>
     /// <param name="rippleDb"></param>
-    /// <returns> Poles of the ChebyshevI analog lowPass filter prototype of the specified order </returns>
+    /// <returns> Poles and gain of the ChebyshevI analog lowPass filter prototype of the specified order </returns>
     public static (List<Complex> poles, double gain) PrototypeAnalogLowPass(int filterOrder, double rippleDb)
     {
         if (filterOrder < 1 || filterOrder > 14)
@@ -25,7 +25,7 @@ internal class ChebyshevI
         } 
 
         var epsilon = Math.Sqrt(Math.Pow(10, rippleDb / 10.0) - 1);
-        var sinhAsinh = Asinh(1 / epsilon) / filterOrder;
+        var sinhAsinh = FilterTools.Asinh(1 / epsilon) / filterOrder;
 
         var poles = new List<Complex>();
         for (int k = 1; k <= filterOrder; k++)
@@ -99,10 +99,5 @@ internal class ChebyshevI
         var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
         var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain);
         return filter.tf;
-    }
-
-    private static double Asinh(double x)
-    {
-        return Math.Log(x + Math.Sqrt(x * x + 1.0));
     }
 }

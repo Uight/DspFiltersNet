@@ -8,7 +8,9 @@ internal class TestHelper
     {
         Assert.Multiple(() =>
         {
-            Assert.That(actual.K, Is.EqualTo(expected.K).Within(1.0e-14), "Gain incorrect");
+            var tolerance = 1e-14;
+
+            Assert.That(actual.K, Is.EqualTo(expected.K).Within(tolerance), "Gain incorrect");
 
             // Sort zeros by real part (then imag part) to align them
             var sortedExpectedZeros = expected.Z.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
@@ -17,19 +19,19 @@ internal class TestHelper
             Assert.That(actual.Z, Has.Length.EqualTo(expected.Z.Length), "Zeros length not matching");
             for (var i = 0; i < actual.Z.Length; i++)
             {
-                Assert.That(sortedActualZeros[i].Real, Is.EqualTo(sortedExpectedZeros[i].Real).Within(1.0e-14), "Real of zero does not match");
-                Assert.That(sortedActualZeros[i].Imaginary, Is.EqualTo(sortedExpectedZeros[i].Imaginary).Within(1.0e-14), "Imag of zero does not match");
+                Assert.That(sortedActualZeros[i].Real, Is.EqualTo(sortedExpectedZeros[i].Real).Within(tolerance), "Real of zero does not match");
+                Assert.That(sortedActualZeros[i].Imaginary, Is.EqualTo(sortedExpectedZeros[i].Imaginary).Within(tolerance), "Imag of zero does not match");
             }
 
             // Sort poles by real part (then imag part) to align them
-            var sortedExpectedPoles = expected.P.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
-            var sortedActualPoles = actual.P.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
+            var sortedExpectedPoles = expected.P.OrderBy(c => Math.Round(c.Real / tolerance) * tolerance).ThenBy(c => c.Imaginary).ToArray();
+            var sortedActualPoles = actual.P.OrderBy(c => Math.Round(c.Real / tolerance) * tolerance).ThenBy(c => c.Imaginary).ToArray();
 
             Assert.That(actual.P, Has.Length.EqualTo(expected.P.Length), "Poles length not matching");
             for (var i = 0; i < actual.P.Length; i++)
             {
-                Assert.That(sortedActualPoles[i].Real, Is.EqualTo(sortedExpectedPoles[i].Real).Within(1.0e-14), "Real of pole does not match");
-                Assert.That(sortedActualPoles[i].Imaginary, Is.EqualTo(sortedExpectedPoles[i].Imaginary).Within(1.0e-14), "Imag of pole does not match");
+                Assert.That(sortedActualPoles[i].Real, Is.EqualTo(sortedExpectedPoles[i].Real).Within(tolerance), "Real of pole does not match");
+                Assert.That(sortedActualPoles[i].Imaginary, Is.EqualTo(sortedExpectedPoles[i].Imaginary).Within(tolerance), "Imag of pole does not match");
             }
         });
     }
