@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using DspFiltersNet.Filter;
+using System.Numerics;
 
 namespace DspFiltersNet.FilterImplementations;
 
@@ -63,5 +64,53 @@ internal class ChebyshevII
         gain = denMag / numMag;
 
         return (poles, zeros, gain);
+    }
+
+    /// <summary>
+    /// Calculate IIR Filter transferFunction coefficients
+    /// As in MATLAB => [z,p,k] = cheby2(n, Rs, Ws)
+    ///
+    /// In contrast to matlab this method does not require to normalize the frequencies before calling.
+    /// If BandPass or BandStop is selected the actual order of the filter created is double that of the specified order.
+    /// </summary>
+    /// <param name="frequencyFilterType"></param>
+    /// <param name="freqSampling"></param>
+    /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
+    /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
+    /// <param name="filterOrder"></param>
+    /// <param name="rippleDb"></param>
+    /// <returns> zeros(z), poles(p) and gain(k) for the specified filter settings </returns>
+    public static Zpk CalcZpk(FrequencyFilterType frequencyFilterType,
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double rippleDb)
+    {
+        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
+        //ToDo: handling of lowPass prototype zeros completly missing
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain);
+        return filter.zpk;
+    }
+
+    /// <summary>
+    /// Calculate IIR Filter transferFunction coefficients
+    /// As in MATLAB => [b,a] = cheby2(n, Rs, Ws)
+    ///
+    /// In contrast to matlab this method does not require to normalize the frequencies before calling.
+    /// If BandPass or BandStop is selected the actual order of the filter created is double that of the specified order.
+    /// </summary>
+    /// <param name="frequencyFilterType"></param>
+    /// <param name="freqSampling"></param>
+    /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
+    /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
+    /// <param name="filterOrder"></param>
+    /// <param name="rippleDb"></param>
+    /// <returns> numerator(b) and denominator(a) for the specified filter settings </returns>
+    public static TransferFunction CalcTransferFunction(FrequencyFilterType frequencyFilterType,
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double rippleDb)
+    {
+        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
+        //ToDo: handling of lowPass prototype zeros completly missing
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain);
+        return filter.tf;
     }
 }
