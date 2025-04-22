@@ -66,7 +66,7 @@ internal static class FilterTools
                 gain = Convert2LowPass(warpedLow, ref poles, ref zeros, lowPassPrototypeGain);
                 break;
             case FrequencyFilterType.HighPass:
-                Convert2HighPass(warpedHigh, ref poles, out zeros);
+                gain = Convert2HighPass(warpedHigh, ref poles, ref zeros, lowPassPrototypeGain);
                 break;
             case FrequencyFilterType.BandPass:
                 gain = Convert2BandPass(warpedLow, warpedHigh, ref poles, out zeros) * lowPassPrototypeGain;
@@ -130,12 +130,21 @@ internal static class FilterTools
     /// Convert analog lowPass prototype poles to highPass poles and generate zeros
     /// using:  highPassPole = wc / lowPassPT_Pole
     /// </summary>
-    /// <param name="highCutOff"></param>
-    /// <param name="poles"></param>
-    /// <param name="zeros"></param>
-    private static void Convert2HighPass(double highCutOff, ref List<Complex> poles, out List<Complex> zeros)
+    private static double Convert2HighPass(
+        double highCutOff,
+        ref List<Complex> poles,
+        ref List<Complex> zeros,
+        double prototypeGain)
     {
         var wc = highCutOff;
+        var prototypesZeroCount = zeros.Count; // Is zero for butterworth, bessel, and chebyshev type 1
+
+        var gain = 1.0;
+        // Check for chebyshev type 1 filter
+        if (prototypesZeroCount == 0 && prototypeGain != 1.0)
+        {
+            gain = ChebyshevI.AdjustHighpassGain(prototypeGain, poles);
+        }
 
         // Convert LP poles to HP
         for (var i = 0; i < poles.Count; i++)
@@ -146,12 +155,21 @@ internal static class FilterTools
             }
         }
 
-        // Init with zeros, no non-zero values to convert
-        zeros = new List<Complex>();
-        for (var i = 0; i < poles.Count; i++)
+        // Convert LP zeros to HP
+        for (int i = 0; i < zeros.Count; i++)
+        {
+            if (Complex.Abs(zeros[i]) > 0.0)
+            {
+                zeros[i] = new Complex(wc, 0.0) / zeros[i];
+            }
+        }
+
+        for (var i = zeros.Count; i < poles.Count; i++)
         {
             zeros.Add(new Complex(0.0, 0.0));
         }
+
+        return gain;
     }
 
     /// <summary>
