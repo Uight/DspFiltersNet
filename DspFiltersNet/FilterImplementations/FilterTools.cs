@@ -185,13 +185,31 @@ internal static class FilterTools
     {
         var bandWidth = highCutOff - lowCutOff;
         var wc = Math.Sqrt(highCutOff * lowCutOff);
-        
-        // Calculate bandpass gain
-        var gain = prototypeGain * Math.Pow(bandWidth, poles.Count);
 
-        // Init zeros
-        zeros = new List<Complex>();
-        for (var i = 0; i < poles.Count; i++)
+        var prototypesZeroCount = zeros.Count; // Is zero for butterworth, bessel, and chebyshev type 1
+
+        // Calculate bandpass gain
+        var gain = prototypeGain * Math.Pow(bandWidth, poles.Count - zeros.Count);
+
+        // Check for chebyshev type 2 filter and convert zeros
+        if (prototypesZeroCount != 0)
+        {
+            var tempZeros = new List<Complex>();
+            foreach (var zero in zeros)
+            {
+                if (Complex.Abs(zero) > 0)
+                {
+                    var a = 0.5 * bandWidth * zero;
+                    var b = 0.5 * Complex.Sqrt(Complex.Pow(bandWidth * zero, 2) - 4 * wc * wc);
+                    tempZeros.Add(a + b);
+                    tempZeros.Add(a - b);
+                }
+            }
+            zeros = tempZeros;
+        }
+
+        // Fill zeros
+        for (var i = prototypesZeroCount; i < poles.Count; i++)
         {
             zeros.Add(new Complex(0.0, 0.0));
         }
@@ -237,14 +255,30 @@ internal static class FilterTools
             gain = ChebyshevI.AdjustHighpassAndBandstopGain(prototypeGain, poles);
         }
 
+        // Check for chebyshev type 2 filter and convert zeros
+        if (prototypesZeroCount != 0)
+        {
+            var tempZeros = new List<Complex>();
+            foreach (var zero in zeros)
+            {
+                if (Complex.Abs(zero) > 0)
+                {
+                    var a = 0.5 * bandWidth / zero;
+                    var b = 0.5 * Complex.Sqrt(Complex.Pow(bandWidth / zero, 2) - 4 * wc * wc);
+                    tempZeros.Add(a + b);
+                    tempZeros.Add(a - b);
+                }
+            }
+            zeros = tempZeros;
+        }
+
         // Calc band stop zeros
-        zeros = new List<Complex>();
-        for (var i = 0; i < poles.Count; i++)
+        for (var i = prototypesZeroCount; i < poles.Count; i++)
         {
             zeros.Add(new Complex(0.0, wc));
             zeros.Add(new Complex(0.0, -wc)); // Complex conjugate
         }
-        
+
         // Calc band stop poles
         var tempPoles = new List<Complex>();
         foreach (var pole in poles)

@@ -143,12 +143,40 @@ internal class ChebyshevIITests
                     ,new(0.963772786910616, +0.232994350647842)
                     ,new(0.963772786910616, -0.232994350647842)],
                     0.226320224603446)).SetName("(Zpk Test) BandPass: 3rd Order; Low: 25,81Hz; High: 42,42Hz with 666Hz; RippleDb 2,0");
+            
+            yield return new TestCaseData(FrequencyFilterType.BandStop, 1000, 0.1, 10, 2, 3.0,
+                new Zpk(
+                    [new(0.998993439394469, +0.044856527360111)
+                    ,new(0.998993439394469, -0.044856527360111)
+                    ,new(0.999999612843379, +0.000879950619101)
+                    ,new(0.999999612843379, -0.000879950619101)],
+
+                    [new(0.979322142348896, +0.048037908938875)
+                    ,new(0.979322142348896, -0.048037908938875)
+                    ,new(0.999720994321846, +0.000693384676833)
+                    ,new(0.999720994321846, -0.000693384676833)],
+                    0.980226173793281)).SetName("(Zpk Test) BandStop: 2nd Order; Low: 0,1Hz; High: 10Hz with 1000Hz Sampling; RippleDb 3,0");
+            yield return new TestCaseData(FrequencyFilterType.BandStop, 666, 25.81, 42.42, 3, 2.0,
+                new Zpk(
+                    [new(0.951571739562318, +0.307426779032574)
+                    ,new(0.951571739562318, -0.307426779032574)
+                    ,new(0.925883216496115, +0.377809832337391)
+                    ,new(0.925883216496115, -0.377809832337391)
+                    ,new(0.968502359491254, +0.249004376788589)
+                    ,new(0.968502359491254, -0.249004376788589)],
+
+                    [new(0.914747750264144, +0.375563317908826)
+                    ,new(0.914747750264144, -0.375563317908826)
+                    ,new(0.934178513609807, +0.301253495973557)
+                    ,new(0.934178513609807, -0.301253495973557)
+                    ,new(0.961846781776758, +0.245638259806134)
+                    ,new(0.961846781776758, -0.245638259806134)],
+                    0.963531909758167)).SetName("(Zpk Test) BandStop: 3rd Order; Low: 25,81Hz; High: 42,42Hz with 666Hz; RippleDb 2,0");
         }
     }
 
 
     [TestCaseSource(nameof(ZpkTestDataChebyshevII))]
-    [Ignore("Ignore these tests as the handling of prototype zeros is just not implemented")]
     public void CalcZpkTestsChebyshevI(FrequencyFilterType frequencyFilterType, double sourceFrequency, double lowCutOff, double highCutoff, int order, double rippleDb, Zpk expectedZpk)
     {
         //Arrange + Act
