@@ -102,9 +102,9 @@ internal class ChebyshevI
     }
 
     /// <summary>
-    /// Adjust the gain for a Chebyshev Type I highpass analog filter, based on filter prototype.
+    /// Adjust the gain for a Chebyshev Type I highpass and bandstop analog filter, based on filter prototype.
     /// </summary>
-    public static double AdjustHighpassGain(double prototypeGain, List<Complex> prototypePoles)
+    public static double AdjustHighpassAndBandstopGain(double prototypeGain, List<Complex> prototypePoles)
     {
         var filterOrder = prototypePoles.Count;
         if (filterOrder % 2 == 0)

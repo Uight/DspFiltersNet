@@ -4,12 +4,10 @@ namespace DspFiltersNet.Tests.FilterImplementations;
 
 internal class TestHelper
 {
-    public static void CompareZpk(Zpk actual, Zpk expected)
+    public static void CompareZpk(Zpk actual, Zpk expected, double tolerance = 1e-14)
     {
         Assert.Multiple(() =>
         {
-            var tolerance = 1e-14;
-
             Assert.That(actual.K, Is.EqualTo(expected.K).Within(tolerance), "Gain incorrect");
 
             // Sort zeros by real part (then imag part) to align them

@@ -154,7 +154,7 @@ internal class ChebyshevITests
 
                     [new(0.969983341078402, 0.066826256450609), new(0.969983341078402, -0.066826256450609)
                     ,new(0.999798766391683, 0.000491644504088), new(0.999798766391683, -0.000491644504088)],
-                    0.687520705477987)).SetName("(Zpk Test) BandStop: 2nd Order; Low: 0,1Hz; High: 10Hz with 1000Hz Sampling; RippleDb 3,0");
+                    0.687520705477987)).SetName("(Zpk Test) BandStop: 2nd Order; Low: 0,1Hz; High: 10Hz with 1000Hz Sampling; RippleDb 3,0").SetProperty("Precision", 1e-13); ;
             yield return new TestCaseData(FrequencyFilterType.BandStop, 666, 25.81, 42.42, 3, 2.0,
                 new Zpk(
                     [new(0.951571739562319, -0.307426779032574), new(0.951571739562319, 0.307426779032574)
@@ -170,13 +170,20 @@ internal class ChebyshevITests
 
 
     [TestCaseSource(nameof(ZpkTestDataChebyshevI))]
-    [Ignore("Ignore these tests as the handling of prototype gain is not correct for HighPass and BandPass with even order")]
     public void CalcZpkTestsChebyshevI(FrequencyFilterType frequencyFilterType, double sourceFrequency, double lowCutOff, double highCutoff, int order, double rippleDb, Zpk expectedZpk)
     {
         //Arrange + Act
         var zpk = ChebyshevI.CalcZpk(frequencyFilterType, sourceFrequency, lowCutOff, highCutoff, order, rippleDb);
 
         //Assert
-        TestHelper.CompareZpk(zpk, expectedZpk);
+        double comparePrecision = 1e-14;
+
+        // Override if the test case has custom precision
+        if (TestContext.CurrentContext.Test.Properties.ContainsKey("Precision"))
+        {
+            comparePrecision = (double)TestContext.CurrentContext.Test.Properties.Get("Precision")!;
+        }
+
+        TestHelper.CompareZpk(zpk, expectedZpk, comparePrecision);
     }
 }

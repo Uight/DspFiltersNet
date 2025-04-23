@@ -69,11 +69,11 @@ internal static class FilterTools
                 gain = Convert2HighPass(warpedHigh, ref poles, ref zeros, lowPassPrototypeGain);
                 break;
             case FrequencyFilterType.BandPass:
-                gain = Convert2BandPass(warpedLow, warpedHigh, ref poles, out zeros) * lowPassPrototypeGain;
+                gain = Convert2BandPass(warpedLow, warpedHigh, ref poles, ref zeros, lowPassPrototypeGain);
                 filterOrder *= 2;
                 break;
             case FrequencyFilterType.BandStop:
-                Convert2BandStop(warpedLow, warpedHigh, ref poles, out zeros);
+                gain = Convert2BandStop(warpedLow, warpedHigh, ref poles, ref zeros, lowPassPrototypeGain);
                 filterOrder *= 2;
                 break;
         }
@@ -143,7 +143,7 @@ internal static class FilterTools
         // Check for chebyshev type 1 filter
         if (prototypesZeroCount == 0 && prototypeGain != 1.0)
         {
-            gain = ChebyshevI.AdjustHighpassGain(prototypeGain, poles);
+            gain = ChebyshevI.AdjustHighpassAndBandstopGain(prototypeGain, poles);
         }
 
         // Convert LP poles to HP
@@ -176,17 +176,18 @@ internal static class FilterTools
     /// Convert analog lowPass prototype poles to bandPass poles and generate zeros
     /// using:  bandPassPoles = 0.5 * bw * lowPassPT_Pole +- 0.5 * sqrt( bw^2 / lowPassPT_Pole^2 - 4 * wc^2 )
     /// </summary>
-    /// <param name="lowCutOff"></param>
-    /// <param name="highCutOff"></param>
-    /// <param name="poles"></param>
-    /// <param name="zeros"></param>
-    private static double Convert2BandPass(double lowCutOff, double highCutOff, ref List<Complex> poles, out List<Complex> zeros)
+    private static double Convert2BandPass(
+        double lowCutOff,
+        double highCutOff,
+        ref List<Complex> poles,
+        ref List<Complex> zeros,
+        double prototypeGain)
     {
         var bandWidth = highCutOff - lowCutOff;
         var wc = Math.Sqrt(highCutOff * lowCutOff);
         
         // Calculate bandpass gain
-        var gain = Math.Pow(bandWidth, poles.Count);
+        var gain = prototypeGain * Math.Pow(bandWidth, poles.Count);
 
         // Init zeros
         zeros = new List<Complex>();
@@ -217,14 +218,24 @@ internal static class FilterTools
     /// Convert analog lowPass prototype poles to bandStop poles and generate zeros
     /// using:  bandStopPoles = 0.5 * bw / lowPassPT_Pole +- 0.5 * sqrt( bw^2 / lowPassPT_Pole^2 - 4 * wc^2 )
     /// </summary>
-    /// <param name="lowCutOff"></param>
-    /// <param name="highCutOff"></param>
-    /// <param name="poles"></param>
-    /// <param name="zeros"></param>
-    private static void Convert2BandStop(double lowCutOff, double highCutOff, ref List<Complex> poles, out List<Complex> zeros)
+    private static double Convert2BandStop(
+        double lowCutOff,
+        double highCutOff,
+        ref List<Complex> poles,
+        ref List<Complex> zeros,
+        double prototypeGain)
     {
         var bandWidth = highCutOff - lowCutOff;
         var wc = Math.Sqrt(highCutOff * lowCutOff);
+
+        var prototypesZeroCount = zeros.Count; // Is zero for butterworth, bessel, and chebyshev type 1
+
+        var gain = 1.0;
+        // Check for chebyshev type 1 filter
+        if (prototypesZeroCount == 0 && prototypeGain != 1.0)
+        {
+            gain = ChebyshevI.AdjustHighpassAndBandstopGain(prototypeGain, poles);
+        }
 
         // Calc band stop zeros
         zeros = new List<Complex>();
@@ -248,6 +259,7 @@ internal static class FilterTools
         }
         
         poles = tempPoles;
+        return gain;
     }
     
     /// <summary>
