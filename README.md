@@ -6,7 +6,7 @@
 
 **DspFiltersNet** is a digital signal processing library for **.NET 8.0**.
 
-It allows the creation of teh following FilterTypes:
+It allows the creation of the following FilterTypes:
 
 1. MovingAverage
 2. FrequencyFilters
