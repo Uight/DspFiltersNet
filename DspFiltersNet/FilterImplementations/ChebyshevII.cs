@@ -12,7 +12,7 @@ internal class ChebyshevII
     /// <param name="filterOrder"></param>
     /// <param name="stopbandRippleDb"></param>
     /// <returns> Zeros, poles and gain of the ChebyshevII analog lowPass filter prototype of the specified order </returns>
-    public static (List<Complex> poles, List<Complex> zeros, double gain) PrototypeAnalogLowPass(int filterOrder, double stopbandRippleDb)
+    public static Zpk PrototypeAnalogLowPass(int filterOrder, double stopbandRippleDb)
     {
         if (filterOrder < 1 || filterOrder > 14)
         {
@@ -63,7 +63,7 @@ internal class ChebyshevII
 
         gain = denMag / numMag;
 
-        return (poles, zeros, gain);
+        return new Zpk(zeros.ToArray(), poles.ToArray(), gain);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ internal class ChebyshevII
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
         var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain, lowPassPrototype.zeros);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
         return filter.zpk;
     }
 
@@ -108,7 +108,7 @@ internal class ChebyshevII
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
         var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain, lowPassPrototype.zeros);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
         return filter.tf;
     }
 }

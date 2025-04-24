@@ -7,102 +7,49 @@ namespace DspFiltersNet.Tests.FilterImplementations;
 [TestFixture]
 internal class ChebyshevITests
 {
-    [Test]
-    public void Chebyshev_Type1_TestPoles_FilterOrder6()
+    public static IEnumerable<TestCaseData> LowPassPrototype_TestDataChebyshevI
     {
-        double referenceGain = 0.031324290406487;
-
-        Complex[] referencePoles = new Complex[]
+        get
         {
-            new Complex(-0.038229512502700, +0.976406016979622),
-            new Complex(-0.104444970505967, +0.714778813245043),
-            new Complex(-0.142674483008667, +0.261627203734579),
-            new Complex(-0.142674483008667, -0.261627203734579),
-            new Complex(-0.104444970505967, -0.714778813245043),
-            new Complex(-0.038229512502700, -0.976406016979622)
-        };
+            yield return new TestCaseData(6, 3.0,
+                new Zpk(
+                    [],
 
-        var calculatedPrototype = ChebyshevI.PrototypeAnalogLowPass(6, 3);
+                    [new Complex(-0.038229512502700, +0.976406016979622)
+                    ,new Complex(-0.104444970505967, +0.714778813245043)
+                    ,new Complex(-0.142674483008667, +0.261627203734579)
+                    ,new Complex(-0.142674483008667, -0.261627203734579)
+                    ,new Complex(-0.104444970505967, -0.714778813245043)
+                    ,new Complex(-0.038229512502700, -0.976406016979622)],
 
-        // Sort both by real part (then imag part) to align them
-        var sortedExpected = referencePoles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
-        var sortedActual = calculatedPrototype.poles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
+                    0.031324290406487)).SetName("LowPassPrototype Test: Order 6; RippleDb 3,0");
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(calculatedPrototype.gain, Is.EqualTo(referenceGain).Within(1e-8), "Gain mismatch");
-            Assert.That(calculatedPrototype.poles, Has.Count.EqualTo(referencePoles.Length), "Pole count mismatch.");
+            yield return new TestCaseData(2, 2.5,
+                new Zpk(
+                    [],
 
-            for (int i = 0; i < sortedExpected.Length; i++)
-            {
-                var expected = sortedExpected[i];
-                var actual = sortedActual[i];
+                    [new Complex(-0.357625433341244, +0.792398858260480)
+                    ,new Complex(-0.357625433341244, -0.792398858260480)],
 
-                Assert.That(actual.Real, Is.EqualTo(expected.Real).Within(1e-8),
-                    $"Mismatch at index {i} (Real part)");
-                Assert.That(actual.Imaginary, Is.EqualTo(expected.Imaginary).Within(1e-8),
-                    $"Mismatch at index {i} (Imaginary part)");
-            }
-        });
+                    0.566763970129022)).SetName("LowPassPrototype Test: Order 2; RippleDb 2,5");
+
+            yield return new TestCaseData(1, 3.0,
+                new Zpk(
+                    [],
+
+                    [new Complex(-1.002377293007601, 0.0)],
+
+                    1.002377293007601)).SetName("LowPassPrototype Test: Order 1; RippleDb 3,0");
+        }
     }
 
-    [Test]
-    public void Chebyshev_Type1_TestPoles_FilterOrder2()
+    [TestCaseSource(nameof(LowPassPrototype_TestDataChebyshevI))]
+    public void Chebyshev_Type1_TestPrototype(int filterOrder, double rippleDb, Zpk expectedZpk)
     {
-        double referenceGain = 0.566763970129022;
+        var calculatedPrototype = ChebyshevI.PrototypeAnalogLowPass(filterOrder, rippleDb);
 
-        Complex[] referencePoles = new Complex[]
-        {
-            new Complex(-0.357625433341244, +0.792398858260480),
-            new Complex(-0.357625433341244, -0.792398858260480)
-        };
-
-        var calculatedPrototype = ChebyshevI.PrototypeAnalogLowPass(2, 2.5);
-
-        // Sort both by real part (then imag part) to align them
-        var sortedExpected = referencePoles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
-        var sortedActual = calculatedPrototype.poles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(calculatedPrototype.gain, Is.EqualTo(referenceGain).Within(1e-8), "Gain mismatch");
-            Assert.That(calculatedPrototype.poles, Has.Count.EqualTo(referencePoles.Length), "Pole count mismatch.");
-
-            for (int i = 0; i < sortedExpected.Length; i++)
-            {
-                var expected = sortedExpected[i];
-                var actual = sortedActual[i];
-
-                Assert.That(actual.Real, Is.EqualTo(expected.Real).Within(1e-8),
-                    $"Mismatch at index {i} (Real part)");
-                Assert.That(actual.Imaginary, Is.EqualTo(expected.Imaginary).Within(1e-8),
-                    $"Mismatch at index {i} (Imaginary part)");
-            }
-        });
+        TestHelper.CompareZpk(calculatedPrototype, expectedZpk);
     }
-
-    [Test]
-    public void Chebyshev_Type1_TestPoles_FilterOrder1()
-    {
-        double referenceGain = 1.002377293007601;
-
-        Complex[] referencePoles = new Complex[]
-        {
-            new Complex(-1.002377293007601, 0.0)
-        };
-
-        var calculatedPrototype = ChebyshevI.PrototypeAnalogLowPass(1, 3);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(calculatedPrototype.gain, Is.EqualTo(referenceGain).Within(1e-8), "Gain mismatch");
-            Assert.That(calculatedPrototype.poles, Has.Count.EqualTo(referencePoles.Length), "Pole count mismatch.");
-
-            Assert.That(calculatedPrototype.poles.First().Real, Is.EqualTo(referencePoles.First().Real).Within(1e-8));
-            Assert.That(calculatedPrototype.poles.First().Imaginary, Is.EqualTo(referencePoles.First().Imaginary).Within(1e-8));
-        });
-    }
-
 
     public static IEnumerable<TestCaseData> ZpkTestDataChebyshevI
     {

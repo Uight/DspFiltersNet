@@ -1,4 +1,5 @@
 ﻿using DspFiltersNet.Filter;
+using System.ComponentModel;
 using System.Numerics;
 
 namespace DspFiltersNet.FilterImplementations;
@@ -45,37 +46,37 @@ internal static class FilterTools
         }
     }
     
-    public static (Zpk zpk, TransferFunction tf) CalcFilterSettings(FrequencyFilterType frequencyFilterType, double freqSampling, double freqLowCutOff, double freqHighCutOff, 
-        int filterOrder, List<Complex> lowPassPrototypePoles, double lowPassPrototypeGain = 1.0, List<Complex>? lowPassPrototypeZeros = null)
+    public static (Zpk zpk, TransferFunction tf) CalcFilterSettings(FrequencyFilterType frequencyFilterType, double freqSampling, 
+        double freqLowCutOff, double freqHighCutOff, int filterOrder, Zpk lowPassPrototype)
     {
         // Pre-warp frequencies
         var warpedLow = 2 * Math.Tan(Math.PI * freqLowCutOff / freqSampling);
         var warpedHigh = 2 * Math.Tan(Math.PI * freqHighCutOff / freqSampling);
 
-        // A lowPass prototype has no zeros so only poles are set.
-        var poles = lowPassPrototypePoles;
-        var zeros = lowPassPrototypeZeros ?? [];
-
-        //Initialize gain with 1 as the gain for a lowPass prototype is 1.
-        var gain = 1.0;
+        // Initialize Zpk to work on
+        var poles = lowPassPrototype.P.ToList();
+        var zeros = lowPassPrototype.Z.ToList();
+        double gain;
 
         // Convert analogue lowPass prototype to target filter type
         switch (frequencyFilterType)
         {
             case FrequencyFilterType.LowPass:
-                gain = Convert2LowPass(warpedLow, ref poles, ref zeros, lowPassPrototypeGain);
+                gain = Convert2LowPass(warpedLow, ref poles, ref zeros, lowPassPrototype.K);
                 break;
             case FrequencyFilterType.HighPass:
-                gain = Convert2HighPass(warpedHigh, ref poles, ref zeros, lowPassPrototypeGain);
+                gain = Convert2HighPass(warpedHigh, ref poles, ref zeros, lowPassPrototype.K);
                 break;
             case FrequencyFilterType.BandPass:
-                gain = Convert2BandPass(warpedLow, warpedHigh, ref poles, ref zeros, lowPassPrototypeGain);
+                gain = Convert2BandPass(warpedLow, warpedHigh, ref poles, ref zeros, lowPassPrototype.K);
                 filterOrder *= 2;
                 break;
             case FrequencyFilterType.BandStop:
-                gain = Convert2BandStop(warpedLow, warpedHigh, ref poles, ref zeros, lowPassPrototypeGain);
+                gain = Convert2BandStop(warpedLow, warpedHigh, ref poles, ref zeros, lowPassPrototype.K);
                 filterOrder *= 2;
                 break;
+            default:
+                throw new InvalidEnumArgumentException(nameof(frequencyFilterType), (int)frequencyFilterType, typeof(FrequencyFilterType));
         }
 
         // Map zeros & poles from S-plane to Z-plane

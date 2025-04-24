@@ -11,8 +11,8 @@ internal static class Butterworth
     /// As in MATLAB => [z,p,k] = buttap(order)
     /// </summary>
     /// <param name="filterOrder"></param>
-    /// <returns> Poles of the Butterworth analog lowPass filter prototype of the specified order </returns>
-    public static List<Complex> PrototypeAnalogLowPass(int filterOrder)
+    /// <returns> Zeros, poles and gain of the Butterworth analog lowPass filter prototype of the specified order </returns>
+    public static Zpk PrototypeAnalogLowPass(int filterOrder)
     {
         if (filterOrder < 1 || filterOrder > 14)
         {
@@ -34,7 +34,7 @@ internal static class Butterworth
             poles.Add(new Complex(-1.0, 0.0));
         }
 
-        return poles;
+        return new Zpk([], poles.ToArray(), 1.0);
     }
 
     /// <summary>
@@ -54,8 +54,8 @@ internal static class Butterworth
         double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder)
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototypePoles = PrototypeAnalogLowPass(filterOrder);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototypePoles);
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
         return filter.zpk;
     }
 
@@ -76,8 +76,8 @@ internal static class Butterworth
         double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder)
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototypePoles = PrototypeAnalogLowPass(filterOrder);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototypePoles);
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
         return filter.tf;
     }
 }

@@ -61,12 +61,11 @@ internal class ChebyshevIITests
     }
 
     [TestCaseSource(nameof(LowPassPrototype_TestDataChebyshevII))]
-    public void Chebyshev_Type2_TestPoles_FilterOrder2(int filterOrder, double stopbandRippleDb, Zpk expectedZpk)
+    public void Chebyshev_Type2_TestPrototype(int filterOrder, double stopbandRippleDb, Zpk expectedZpk)
     {
         var calculatedPrototype = ChebyshevII.PrototypeAnalogLowPass(filterOrder, stopbandRippleDb);
-        var actualZpK = new Zpk(calculatedPrototype.zeros.ToArray(), calculatedPrototype.poles.ToArray(), calculatedPrototype.gain);
 
-        TestHelper.CompareZpk(actualZpK, expectedZpk);
+        TestHelper.CompareZpk(calculatedPrototype, expectedZpk);
     }
 
     public static IEnumerable<TestCaseData> ZpkTestDataChebyshevII

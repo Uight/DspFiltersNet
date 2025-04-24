@@ -4,14 +4,14 @@ namespace DspFiltersNet.FilterImplementations;
 
 internal class Zpk
 {
-    public Complex[] Z { get; } //Zeros
-    public Complex[] P { get; } //Poles
+    public IReadOnlyCollection<Complex> Z { get; } //Zeros
+    public IReadOnlyCollection<Complex> P { get; } //Poles
     public double K { get; } //Gain
     
     public Zpk(Complex[] z, Complex[] p, double k)
     {
-        Z = z;
-        P = p;
+        Z = z.AsReadOnly();
+        P = p.AsReadOnly();
         K = k;
     }
 }

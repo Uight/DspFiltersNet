@@ -10,7 +10,7 @@ internal class BesselTests
     [Test]
     public void TestBesselPoleLimits()
     {
-        Complex[] referencePoles = new Complex[]
+        Complex[] expectedPoles = new Complex[]
         {
             new Complex(-0.907793213839649, -0.082196399419402),
             new Complex(-0.907793213839649, +0.082196399419402),
@@ -28,27 +28,11 @@ internal class BesselTests
             new Complex(-0.336386822490204, +1.139172297839860),
         };
 
-        var calculatedPoles = Bessel.PrototypeAnalogLowPass(14);
+        var expectedZpk = new Zpk([], expectedPoles, 1.0);
 
-        // Sort both by real part (then imag part) to align them
-        var sortedExpected = referencePoles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
-        var sortedActual = calculatedPoles.OrderBy(c => c.Real).ThenBy(c => c.Imaginary).ToArray();
+        var calculatedPrototype = Bessel.PrototypeAnalogLowPass(14);
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(calculatedPoles, Has.Count.EqualTo(referencePoles.Length), "Pole count mismatch.");
-
-            for (int i = 0; i < sortedExpected.Length; i++)
-            {
-                var expected = sortedExpected[i];
-                var actual = sortedActual[i];
-
-                Assert.That(actual.Real, Is.EqualTo(expected.Real).Within(1e-8),
-                    $"Mismatch at index {i} (Real part)");
-                Assert.That(actual.Imaginary, Is.EqualTo(expected.Imaginary).Within(1e-8),
-                    $"Mismatch at index {i} (Imaginary part)");
-            }
-        });
+        TestHelper.CompareZpk(calculatedPrototype, expectedZpk, 1e-8);
     }
 
     //All testData are created with SciPy

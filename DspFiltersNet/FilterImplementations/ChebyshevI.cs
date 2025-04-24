@@ -11,8 +11,8 @@ internal class ChebyshevI
     /// </summary>
     /// <param name="filterOrder"></param>
     /// <param name="rippleDb"></param>
-    /// <returns> Poles and gain of the ChebyshevI analog lowPass filter prototype of the specified order </returns>
-    public static (List<Complex> poles, double gain) PrototypeAnalogLowPass(int filterOrder, double rippleDb)
+    /// <returns> Zeros, poles and gain of the ChebyshevI analog lowPass filter prototype of the specified order </returns>
+    public static Zpk PrototypeAnalogLowPass(int filterOrder, double rippleDb)
     {
         if (filterOrder < 1 || filterOrder > 14)
         {
@@ -52,7 +52,7 @@ internal class ChebyshevI
             gain = (1.0 / Math.Sqrt(1 + epsilon * epsilon)) * product.Magnitude;
         }
 
-        return (poles, gain);
+        return new Zpk([], poles.ToArray(), gain);
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ internal class ChebyshevI
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
         var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
         return filter.zpk;
     }
 
@@ -97,7 +97,7 @@ internal class ChebyshevI
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
         var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype.poles, lowPassPrototype.gain);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
         return filter.tf;
     }
 

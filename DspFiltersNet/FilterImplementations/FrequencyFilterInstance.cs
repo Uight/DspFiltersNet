@@ -7,8 +7,8 @@ internal class FrequencyFilterInstance : FilterInstanceBase
 {
     private readonly double[] inputSamples; // Input samples (mostly called x)
     private readonly double[] outputSamples; // Output samples (mostly called y)
-    private readonly double[] denominator; // Denominator of transfer function (sometimes called a)
-    private readonly double[] numerator; // Numerator of transfer function (sometimes called b)
+    private readonly IReadOnlyList<double> denominator; // Denominator of transfer function (sometimes called a)
+    private readonly IReadOnlyList<double> numerator; // Numerator of transfer function (sometimes called b)
     private readonly int size;
     private bool reset;
 
@@ -27,9 +27,9 @@ internal class FrequencyFilterInstance : FilterInstanceBase
                 throw new InvalidEnumArgumentException(nameof(filterData.FilterDesignType), (int)filterData.FilterDesignType, typeof(FrequencyFilterDesignType));
         }
 
-        numerator = tf.B;
-        denominator = tf.A;
-        size = denominator.Length;
+        numerator = tf.B.ToList().AsReadOnly();
+        denominator = tf.A.ToList().AsReadOnly();
+        size = denominator.Count;
         inputSamples = new double[size];
         outputSamples = new double[size];
         reset = true;

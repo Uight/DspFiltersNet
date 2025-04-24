@@ -12,8 +12,8 @@ internal static class Bessel
     /// As in MATLAB => [z,p,k] = besselap(order)
     /// </summary>
     /// <param name="filterOrder"></param>
-    /// <returns> Poles of the Bessel analog lowPass filter prototype of the specified order </returns>
-    public static List<Complex> PrototypeAnalogLowPass(int filterOrder)
+    /// <returns> Zeros, poles and gain of the Bessel analog lowPass filter prototype of the specified order </returns>
+    public static Zpk PrototypeAnalogLowPass(int filterOrder)
     {
         // The bessel polynomial has pretty high numbers pretty fast. Using BigInteger enables
         // orders higher than 10 but above 14 the Roots function starts failing
@@ -21,7 +21,7 @@ internal static class Bessel
         {
             throw new ArgumentOutOfRangeException(nameof(filterOrder));
         }
-        return GetPoles(filterOrder);
+        return new Zpk([], GetPoles(filterOrder), 1.0);
     }
 
     /// <summary>
@@ -41,8 +41,8 @@ internal static class Bessel
         double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder)
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototypePoles = PrototypeAnalogLowPass(filterOrder);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototypePoles);
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
         return filter.zpk;
     }
 
@@ -63,12 +63,12 @@ internal static class Bessel
         double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder)
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototypePoles = PrototypeAnalogLowPass(filterOrder);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototypePoles);
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
         return filter.tf;
     }
 
-    private static List<Complex> GetPoles(int order)
+    private static Complex[] GetPoles(int order)
     {
         var polyCoefficients = BesselPoly(order);
 
@@ -82,7 +82,7 @@ internal static class Bessel
             roots[i] *= new Complex(scaleFactor, 0);
         }
 
-        return roots.ToList();
+        return roots;
     }
 
     private static List<double> BesselPoly(int order)
