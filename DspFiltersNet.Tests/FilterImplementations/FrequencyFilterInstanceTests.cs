@@ -1,6 +1,5 @@
 ﻿using DspFiltersNet.Filter;
 using DspFiltersNet.FilterImplementations;
-using System.ComponentModel;
 
 namespace DspFiltersNet.Tests.FilterImplementations;
 
@@ -16,7 +15,7 @@ internal class FrequencyFilterInstanceTests
     [Test]
     public void FrequencyFilterInstance_Process_CalculatesCorrectFiltered()
     {
-        var filterData = new FrequencyFilterDefinition(FrequencyFilterType.LowPass, 10, 100, FrequencyFilterDesignType.Butterworth, 2, 1000);
+        var filterData = new ButterworthFilterDefinition(FrequencyFilterType.LowPass, 10, 100, 2, 1000);
         var filterInstance = new FrequencyFilterInstance(filterData);
         
         const double tolerance = 1E-12d;
@@ -40,7 +39,7 @@ internal class FrequencyFilterInstanceTests
     [Test]
     public void FrequencyFilterInstance_ProcessCurve_CalculatesCorrectFiltered()
     {
-        var filterData = new FrequencyFilterDefinition(FrequencyFilterType.LowPass, 10, 100, FrequencyFilterDesignType.Butterworth, 2, 1000);
+        var filterData = new ButterworthFilterDefinition(FrequencyFilterType.LowPass, 10, 100, 2, 1000);
         var filterInstance = new FrequencyFilterInstance(filterData);
         
         const double tolerance = 1E-12d;
@@ -53,7 +52,7 @@ internal class FrequencyFilterInstanceTests
     [Test]
     public void FrequencyFilterInstance_ProcessCurveWithNaN_CalculatesCorrectFiltered()
     {
-        var filterData = new FrequencyFilterDefinition(FrequencyFilterType.LowPass, 10, 100, FrequencyFilterDesignType.Butterworth, 2, 1000);
+        var filterData = new ButterworthFilterDefinition(FrequencyFilterType.LowPass, 10, 100, 2, 1000);
         var filterInstance = new FrequencyFilterInstance(filterData);
         
         const double tolerance = 1E-12d;
@@ -65,7 +64,7 @@ internal class FrequencyFilterInstanceTests
     [Test]
     public void FrequencyFilterInstance_ResetFilter()
     {
-        var filterData = new FrequencyFilterDefinition(FrequencyFilterType.LowPass, 10, 100, FrequencyFilterDesignType.Butterworth, 2, 1000);
+        var filterData = new ButterworthFilterDefinition(FrequencyFilterType.LowPass, 10, 100, 2, 1000);
         var filterInstance = new FrequencyFilterInstance(filterData);
 
         const double tolerance = 1E-12d;
@@ -84,7 +83,7 @@ internal class FrequencyFilterInstanceTests
     [Test]
     public void FrequencyFilterInstance_ResetFilter_WithValueAfterReset()
     {
-        var filterData = new FrequencyFilterDefinition(FrequencyFilterType.LowPass, 10, 100, FrequencyFilterDesignType.Butterworth, 2, 1000);
+        var filterData = new ButterworthFilterDefinition(FrequencyFilterType.LowPass, 10, 100, 2, 1000);
         var filterInstance = new FrequencyFilterInstance(filterData);
 
         const double tolerance = 1E-12d;
@@ -109,14 +108,14 @@ internal class FrequencyFilterInstanceTests
     [Test]
     public void FrequencyFilterInstance_InvalidDesignType_ThrowsException()
     {
-        var invalidFilterData = new FrequencyFilterDefinition(FrequencyFilterType.LowPass, 10, 100, (FrequencyFilterDesignType)5, 2, 1000);
-        Assert.Throws<InvalidEnumArgumentException>(() => { _ = new FrequencyFilterInstance(invalidFilterData); });
+        var invalidFilterData = new MovingAverageFilterDefinition(10);
+        Assert.Throws<NotSupportedException>(() => { _ = new FrequencyFilterInstance(invalidFilterData); });
     }
     
     [Test]
     public void FrequencyFilterInstance_InvalidCutOffFrequenciesSetting_ThrowsException()
     {
-        var invalidFilterData = new FrequencyFilterDefinition(FrequencyFilterType.BandPass, 100, 100, FrequencyFilterDesignType.Butterworth, 2, 1000);
+        var invalidFilterData = new ButterworthFilterDefinition(FrequencyFilterType.BandPass, 100, 100, 2, 1000);
         Assert.Throws<ArgumentOutOfRangeException>(() => { _ = new FrequencyFilterInstance(invalidFilterData); });
     }
 }

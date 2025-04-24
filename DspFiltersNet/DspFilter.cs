@@ -14,12 +14,10 @@ public class DspFilter
             filterInstance = new MovingAverageInstance(movingAverageFilterDefinition);
             return;
         }
-        if (filterDefinition is FrequencyFilterDefinition frequencyFilterDefinition)
+        else
         {
-            filterInstance = new FrequencyFilterInstance(frequencyFilterDefinition);
-            return;
+            filterInstance = new FrequencyFilterInstance(filterDefinition);
         }
-        throw new NotSupportedException($"Unsupported filter definition type: {filterDefinition.GetType().Name}");
     }
 
     public void ResetCalculation()

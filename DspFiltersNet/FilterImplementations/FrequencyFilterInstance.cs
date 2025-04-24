@@ -1,5 +1,4 @@
 ﻿using DspFiltersNet.Filter;
-using System.ComponentModel;
 
 namespace DspFiltersNet.FilterImplementations;
 
@@ -12,19 +11,33 @@ internal class FrequencyFilterInstance : FilterInstanceBase
     private readonly int size;
     private bool reset;
 
-    public FrequencyFilterInstance(FrequencyFilterDefinition filterData)
+    public FrequencyFilterInstance(IFilterDefinition filterDefinition)
     {
         TransferFunction tf;
-        switch (filterData.FilterDesignType)
+
+        if (filterDefinition is ButterworthFilterDefinition butterworthFilterDefinition)
         {
-            case FrequencyFilterDesignType.Butterworth:
-                tf = Butterworth.CalcTransferFunction(filterData.FilterType, filterData.SamplingFrequency, filterData.CutoffFrequencyLow, filterData.CutoffFrequencyHigh, filterData.FilterOrder);
-                break;
-            case FrequencyFilterDesignType.Bessel:
-                tf = Bessel.CalcTransferFunction(filterData.FilterType, filterData.SamplingFrequency, filterData.CutoffFrequencyLow, filterData.CutoffFrequencyHigh, filterData.FilterOrder);
-                break;
-            default:
-                throw new InvalidEnumArgumentException(nameof(filterData.FilterDesignType), (int)filterData.FilterDesignType, typeof(FrequencyFilterDesignType));
+            tf = Butterworth.CalcTransferFunction(butterworthFilterDefinition.FilterType, butterworthFilterDefinition.SamplingFrequency,
+                butterworthFilterDefinition.CutoffFrequencyLow, butterworthFilterDefinition.CutoffFrequencyHigh, butterworthFilterDefinition.FilterOrder);
+        }
+        else if (filterDefinition is BesselFilterDefinition besselFilterDefinition)
+        {
+            tf = Bessel.CalcTransferFunction(besselFilterDefinition.FilterType, besselFilterDefinition.SamplingFrequency, 
+                besselFilterDefinition.CutoffFrequencyLow, besselFilterDefinition.CutoffFrequencyHigh, besselFilterDefinition.FilterOrder);
+        }
+        else if (filterDefinition is ChebyshevTypeOneFilterDefinition cheby1FilterDefinition)
+        {
+            tf = ChebyshevI.CalcTransferFunction(cheby1FilterDefinition.FilterType, cheby1FilterDefinition.SamplingFrequency,
+                cheby1FilterDefinition.CutoffFrequencyLow, cheby1FilterDefinition.CutoffFrequencyHigh, cheby1FilterDefinition.FilterOrder, cheby1FilterDefinition.PassbandRipple);
+        }
+        else if (filterDefinition is ChebyshevTypeTwoFilterDefinition cheby2FilterDefinition)
+        {
+            tf = ChebyshevII.CalcTransferFunction(cheby2FilterDefinition.FilterType, cheby2FilterDefinition.SamplingFrequency,
+                cheby2FilterDefinition.CutoffFrequencyLow, cheby2FilterDefinition.CutoffFrequencyHigh, cheby2FilterDefinition.FilterOrder, cheby2FilterDefinition.StopbandRipple);
+        }
+        else
+        {
+            throw new NotSupportedException($"Unsupported filter definition type: {filterDefinition.GetType().Name}");
         }
 
         numerator = tf.B.ToList().AsReadOnly();
