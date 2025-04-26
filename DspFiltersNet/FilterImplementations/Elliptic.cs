@@ -38,6 +38,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using DspFiltersNet.Filter;
 using System.Numerics;
 
 namespace DspFiltersNet.FilterImplementations;
@@ -161,6 +162,54 @@ internal class Elliptic
         }
 
         return new Zpk(zeros, poles, k);
+    }
+
+    /// <summary>
+    /// Calculate IIR Filter transferFunction coefficients
+    /// As in MATLAB => [z,p,k] = ellip(n, Rp, Rs, Wp)
+    ///
+    /// In contrast to matlab this method does not require to normalize the frequencies before calling.
+    /// If BandPass or BandStop is selected the actual order of the filter created is double that of the specified order.
+    /// </summary>
+    /// <param name="frequencyFilterType"></param>
+    /// <param name="freqSampling"></param>
+    /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
+    /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
+    /// <param name="filterOrder"></param>
+    /// <param name="passbandRippleDb"></param>
+    /// <param name="stopbandAttenuationDb"></param>
+    /// <returns> zeros(z), poles(p) and gain(k) for the specified filter settings </returns>
+    public static Zpk CalcZpk(FrequencyFilterType frequencyFilterType,
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double passbandRippleDb, double stopbandAttenuationDb)
+    {
+        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, passbandRippleDb, stopbandAttenuationDb);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
+        return filter.zpk;
+    }
+
+    /// <summary>
+    /// Calculate IIR Filter transferFunction coefficients
+    /// As in MATLAB => [b,a] = ellip(n, Rp, Rs, Wp)
+    ///
+    /// In contrast to matlab this method does not require to normalize the frequencies before calling.
+    /// If BandPass or BandStop is selected the actual order of the filter created is double that of the specified order.
+    /// </summary>
+    /// <param name="frequencyFilterType"></param>
+    /// <param name="freqSampling"></param>
+    /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
+    /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
+    /// <param name="filterOrder"></param>
+    /// <param name="passbandRippleDb"></param>
+    /// <param name="stopbandAttenuationDb"></param>
+    /// <returns> numerator(b) and denominator(a) for the specified filter settings </returns>
+    public static TransferFunction CalcTransferFunctionCalcZpk(FrequencyFilterType frequencyFilterType,
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double passbandRippleDb, double stopbandAttenuationDb)
+    {
+        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, passbandRippleDb, stopbandAttenuationDb);
+        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
+        return filter.tf;
     }
 
     private static double Pow10Minus1(double x)

@@ -138,14 +138,8 @@ internal static class FilterTools
         double prototypeGain)
     {
         var wc = highCutOff;
-        var prototypesZeroCount = zeros.Count; // Is zero for butterworth, bessel, and chebyshev type 1
 
-        var gain = 1.0;
-        // Check for chebyshev type 1 filter
-        if (prototypesZeroCount == 0 && prototypeGain != 1.0)
-        {
-            gain = ChebyshevI.AdjustHighpassAndBandstopGain(prototypeGain, poles);
-        }
+        var gain = HighpassAndBandstopGainCorrection(new Zpk(zeros.ToArray(), poles.ToArray(), prototypeGain));
 
         // Convert LP poles to HP
         for (var i = 0; i < poles.Count; i++)
@@ -249,12 +243,7 @@ internal static class FilterTools
 
         var prototypesZeroCount = zeros.Count; // Is zero for butterworth, bessel, and chebyshev type 1
 
-        var gain = 1.0;
-        // Check for chebyshev type 1 filter
-        if (prototypesZeroCount == 0 && prototypeGain != 1.0)
-        {
-            gain = ChebyshevI.AdjustHighpassAndBandstopGain(prototypeGain, poles);
-        }
+        var gain = HighpassAndBandstopGainCorrection(new Zpk(zeros.ToArray(), poles.ToArray(), prototypeGain));
 
         // Check for chebyshev type 2 filter and convert zeros
         if (prototypesZeroCount != 0)
@@ -295,6 +284,28 @@ internal static class FilterTools
         
         poles = tempPoles;
         return gain;
+    }
+
+    /// <summary>
+    /// Method that takes the analog lowpass prototype and corrects the gain in a way that
+    /// the gain change caused by the inversion in highpass and bandstop conversion is canceled out.
+    /// </summary>
+    /// <returns>Corrected highpass or bandstop gain.</returns>
+    private static double HighpassAndBandstopGainCorrection(Zpk prototypeLowPass)
+    {
+        var prodP = Complex.One;
+        foreach (var pole in prototypeLowPass.P)
+        {
+            prodP *= -pole;
+        }
+
+        var prodZ = Complex.One;
+        foreach (var zero in prototypeLowPass.Z)
+        {
+            prodZ *= -zero;
+        }
+
+        return prototypeLowPass.K * (prodZ.Real / prodP.Real);
     }
     
     /// <summary>

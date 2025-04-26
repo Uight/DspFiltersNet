@@ -197,7 +197,7 @@ internal class BesselTests
             yield return new TestCaseData(FrequencyFilterType.BandStop, 1000, 0.1, 10, 2,
                 new TransferFunction([0.9479974467608678, -3.791914912267376, 5.687834932491456, -3.791914912267375, 0.9479974467608675],
                     [1, -3.894082784326138, 5.68599971546863, -3.6897470402086108, 0.8978301105445591]),
-                1.0e-15).SetName("(Tf Test) BandStop: 2nd Order, Low: 0.1Hz, High: 10Hz, Sampling: 1000Hz");
+                1.0e-14).SetName("(Tf Test) BandStop: 2nd Order, Low: 0.1Hz, High: 10Hz, Sampling: 1000Hz");
             yield return new TestCaseData(FrequencyFilterType.BandStop, 666, 0.2581, 42.42, 3,
                 new TransferFunction([0.6234143718105545, -3.738639463728164, 9.3438303322035, -12.45721047997155, 9.3438303322035, -3.7386394637281635, 0.6234143718105541],
                     [1, -5.100674388604762, 10.815046111927547, -12.21089383229871, 7.749395392409139, -2.6229211865244104, 0.3700479036914302]),

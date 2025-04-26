@@ -100,40 +100,4 @@ internal class ChebyshevI
         var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
         return filter.tf;
     }
-
-    /// <summary>
-    /// Adjust the gain for a Chebyshev Type I highpass and bandstop analog filter, based on filter prototype.
-    /// </summary>
-    public static double AdjustHighpassAndBandstopGain(double prototypeGain, List<Complex> prototypePoles)
-    {
-        var filterOrder = prototypePoles.Count;
-        if (filterOrder % 2 == 0)
-        {
-            // Even-order: gain is -rp dB at DC
-            var rippleDb = GetEvenOrderRippleDbFromPrototype(prototypeGain, prototypePoles);
-            return Math.Pow(10, -rippleDb / 20.0);
-        }
-        else
-        {
-            // Odd-order: gain is 1.0
-            return 1.0;
-        }
-    }
-
-    /// <summary>
-    /// Reconstructs the Chebyshev Type I ripple in dB from prototype gain and poles.
-    /// Only valid for even-order filters.
-    /// </summary>
-    private static double GetEvenOrderRippleDbFromPrototype(double prototypeGain, List<Complex> prototypePoles)
-    {
-        Complex product = Complex.One;
-        foreach (var p in prototypePoles)
-        {
-            product *= -p;
-        }
-
-        var ratio = product.Magnitude / prototypeGain;
-        var epsilonSquared = ratio * ratio - 1.0;
-        return 10.0 * Math.Log10(1.0 + epsilonSquared);
-    }
 }
