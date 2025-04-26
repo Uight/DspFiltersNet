@@ -14,7 +14,7 @@ internal static class Butterworth
     /// <returns> Zeros, poles and gain of the Butterworth analog lowPass filter prototype of the specified order </returns>
     public static Zpk PrototypeAnalogLowPass(int filterOrder)
     {
-        if (filterOrder < 1 || filterOrder > 14)
+        if (filterOrder < 1 || filterOrder > 16)
         {
             throw new ArgumentOutOfRangeException(nameof(filterOrder));
         }

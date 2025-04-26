@@ -5,7 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
 
     <Authors>Uight</Authors>
-    <Description>Small Filter implementation providing Bessel and Butterworth filters for .NET</Description>
+    <Description>A small package containing some methods to apply frequency filters in .NET</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Uight/DspFiltersNet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Uight/DspFiltersNet</RepositoryUrl>
@@ -14,7 +14,7 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <PackageReleaseNotes></PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <TargetFramework>net8.0</TargetFramework>
@@ -24,10 +24,6 @@
 
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

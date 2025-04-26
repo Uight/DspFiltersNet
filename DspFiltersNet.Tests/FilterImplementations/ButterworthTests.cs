@@ -396,21 +396,14 @@ internal class ButterworthTests
         });
     }
 
-    [TestCase(15)]
+    [TestCase(-1)]
+    [TestCase(0)]
+    [TestCase(17)]
     public void CalcButterworthZpkOrderOutOfRange(int order)
     {
         //Arrange
 
         //Act + Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => Butterworth.CalcZpk(FrequencyFilterType.LowPass, 1000, 10, 0, order));
-    }
-
-    [TestCase(15)]
-    public void CalcButterworthTransferFunctionOrderOutOfRange(int order)
-    {
-        //Arrange
-
-        //Act + Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => Butterworth.CalcTransferFunction(FrequencyFilterType.LowPass, 1000, 10, 0, order));
     }
 }

@@ -14,7 +14,7 @@ internal class ChebyshevII
     /// <returns> Zeros, poles and gain of the ChebyshevII analog lowPass filter prototype of the specified order </returns>
     public static Zpk PrototypeAnalogLowPass(int filterOrder, double stopbandRippleDb)
     {
-        if (filterOrder < 1 || filterOrder > 14)
+        if (filterOrder < 1 || filterOrder > 16)
         {
             throw new ArgumentOutOfRangeException(nameof(filterOrder));
         }

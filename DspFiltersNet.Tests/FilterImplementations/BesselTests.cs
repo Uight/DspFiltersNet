@@ -8,7 +8,7 @@ namespace DspFiltersNet.Tests.FilterImplementations;
 internal class BesselTests
 {
     [Test]
-    public void TestBesselPoleLimits()
+    public void TestBesselPoleLimitsOrder14()
     {
         Complex[] expectedPoles = new Complex[]
         {
@@ -25,12 +25,42 @@ internal class BesselTests
             new Complex(-0.541876677511230, -0.937304368351692),
             new Complex(-0.541876677511230, +0.937304368351692),
             new Complex(-0.336386822490204, -1.139172297839860),
-            new Complex(-0.336386822490204, +1.139172297839860),
+            new Complex(-0.336386822490204, +1.139172297839860)
         };
 
         var expectedZpk = new Zpk([], expectedPoles, 1.0);
 
         var calculatedPrototype = Bessel.PrototypeAnalogLowPass(14);
+
+        TestHelper.CompareZpk(calculatedPrototype, expectedZpk, 1e-10);
+    }
+
+    [Test]
+    public void TestBesselPoleLimitsOrder16()
+    {
+        Complex[] expectedPoles = new Complex[]
+        {
+            new Complex(-0.907209959508700, -0.072142113041117),
+            new Complex(-0.907209959508700, +0.072142113041117),
+            new Complex(-0.891172307032365, -0.216708965990058),
+            new Complex(-0.891172307032365, +0.216708965990058),
+            new Complex(-0.858426423152133, -0.362169727180207),
+            new Complex(-0.858426423152133, +0.362169727180207),
+            new Complex(-0.807479029323600, -0.509293375117180),
+            new Complex(-0.807479029323600, +0.509293375117180),
+            new Complex(-0.735616630471312, -0.659195087786039),
+            new Complex(-0.735616630471312, +0.659195087786039),
+            new Complex(-0.637950251403907, -0.813745353710876),
+            new Complex(-0.637950251403907, +0.813745353710876),
+            new Complex(-0.504760644442477, -0.976713747779909),
+            new Complex(-0.504760644442477, +0.976713747779909),
+            new Complex(-0.310878275564539, -1.158552841199330),
+            new Complex(-0.310878275564539, +1.158552841199330)
+        };
+
+        var expectedZpk = new Zpk([], expectedPoles, 1.0);
+
+        var calculatedPrototype = Bessel.PrototypeAnalogLowPass(16);
 
         TestHelper.CompareZpk(calculatedPrototype, expectedZpk, 1e-8);
     }
@@ -199,21 +229,14 @@ internal class BesselTests
         });
     }
 
-    [TestCase(15)]
+    [TestCase(-1)]
+    [TestCase(0)]
+    [TestCase(17)]
     public void CalcBesselZpkOrderOutOfRange(int order)
     {
         //Arrange
 
         //Act + Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => Bessel.CalcZpk(FrequencyFilterType.LowPass, 1000, 10, 0, order));
-    }
-
-    [TestCase(15)]
-    public void CalcBesselTransferFunctionOrderOutOfRange(int order)
-    {
-        //Arrange
-
-        //Act + Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => Bessel.CalcTransferFunction(FrequencyFilterType.LowPass, 1000, 10, 0, order));
     }
 }
