@@ -22,17 +22,7 @@ For FrequencyFilters it allows the creation of the following filter design types
 The package supports the creation of Lowpass, Highpass, Bandpass and Bandstop filters up to order 16.
 
 The package only supports Filters and does not have other features. For more DSP features in C# you 
-may want to check out [![](https://raw.githubusercontent.com/ar1st0crat/NWaves/master/assets/logo/logo_draft.bmp)](https://github.com/ar1st0crat/NWaves)
-
-[<img src="https://raw.githubusercontent.com/ar1st0crat/NWaves/master/assets/logo/logo_draft.bmp" alt="NWaves" width="100"/> NWaves](https://github.com/ar1st0crat/NWaves)
-
-<a href="https://github.com/ar1st0crat/NWaves">
-  <img src="https://raw.githubusercontent.com/ar1st0crat/NWaves/master/assets/logo/logo_draft.bmp" alt="NWaves" width="200"/>
-</a>
-
-<br>
-
-You may also want to check out [NWaves](https://github.com/ar1st0crat/NWaves)!
+may want to check out [<img src="https://raw.githubusercontent.com/ar1st0crat/NWaves/master/assets/logo/logo_draft.bmp" alt="NWaves" height="18"/> NWaves](https://github.com/ar1st0crat/NWaves)
 
 ### Example Usage
 
