@@ -78,23 +78,19 @@ internal static class FilterTools
 
         // Map zeros & poles from S-plane to Z-plane
         var preBltGain = convertedZpk.K;
-        var gain = convertedZpk.K;
-        var poles = convertedZpk.P.ToList();
-        var zeros = convertedZpk.Z.ToList();
+        var zPlaneZpk = S2Z(convertedZpk);
 
-        S2Z(ref gain, ref poles, ref zeros);
-        
         // Fill zeros with -1 to match size of poles
-        for(var i = zeros.Count; i < filterOrder; i++)
+        var filledZeros = zPlaneZpk.Z.ToList();
+        for (var i = filledZeros.Count; i < filterOrder; i++)
         {
-            zeros.Add(new Complex(-1.0, 0.0));
+            filledZeros.Add(new Complex(-1.0, 0.0));
         }
-        
-        var overallGain = preBltGain * (preBltGain / gain); //For highPass and bandStop preBltGain is 1. This simplifies the formula to 1 / gain
-        
-        Zpk2Tf(zeros, poles, overallGain, out var a, out var b);
-        var zpk = new Zpk(zeros.ToArray(), poles.ToArray(), overallGain);
-        var tf = new TransferFunction(b, a);
+
+        var overallGain = preBltGain * (preBltGain / zPlaneZpk.K); //For highPass and bandStop preBltGain is 1. This simplifies the formula to 1 / gain
+
+        var zpk = new Zpk(filledZeros.ToArray(), zPlaneZpk.P.ToArray(), overallGain);
+        var tf = Zpk2Tf(zpk);
         return (zpk, tf);
     }
 
@@ -283,18 +279,18 @@ internal static class FilterTools
 
         return prototypeLowPass.K * (prodZ.Real / prodP.Real);
     }
-    
+
     /// <summary>
-    /// z = (2 + s) / (2 - s) is bilinear transform to coonvert the S-plane to Z-plane
+    /// z = (2 + s) / (2 - s) is bilinear transform to convert the S-plane to Z-plane
     /// Additional Resources: http://en.wikipedia.org/wiki/Bilinear_transform
     /// </summary>
-    /// <param name="sz">Ref value that is converted from S-plane to Z-plane.</param>
+    /// <param name="s">Value to convert from S-plane to Z-plane.</param>
+    /// <param name="z">Z-plane converted value.</param>
     /// <returns>Gain</returns>
-    private static double BiLinearTransformation(ref Complex sz)
+    private static double BiLinearTransformation(Complex s, out Complex z)
     {
         var complexTwo = new Complex(2.0, 0);
-        var s = new Complex(sz.Real, sz.Imaginary);
-        sz = (complexTwo + s) / (complexTwo - s);
+        z = (complexTwo + s) / (complexTwo - s);
         
         return Complex.Abs(complexTwo - s);
     }
@@ -305,23 +301,29 @@ internal static class FilterTools
     /// <param name="gain"></param>
     /// <param name="poles"></param>
     /// <param name="zeros"></param>
-    private static void S2Z(ref double gain, ref List<Complex> poles, ref List<Complex> zeros)
+    private static Zpk S2Z(Zpk sPlaneZpk)
     {
+        var gain = sPlaneZpk.K;
+
         // blt zeros
-        for(var i = 0; i < zeros.Count; i++)
+        var sPlaneZeros = sPlaneZpk.Z.ToList();
+        var zPlaneZeros = new List<Complex>();
+        for(var i = 0; i < sPlaneZeros.Count; i++)
         {
-            var zero = zeros[i];
-            gain /= BiLinearTransformation(ref zero);
-            zeros[i] = zero;
+            gain /= BiLinearTransformation(sPlaneZeros[i], out var zero);
+            zPlaneZeros.Add(zero);
         }
-    
+
         // blt poles
-        for(var i = 0; i < poles.Count; i++)
+        var sPlanePoles = sPlaneZpk.P.ToList();
+        var zPlanePoles = new List<Complex>();
+        for (var i = 0; i < sPlanePoles.Count; i++)
         {
-            var pole = poles[i];
-            gain *= BiLinearTransformation(ref pole);
-            poles[i] = pole;
+            gain *= BiLinearTransformation(sPlanePoles[i], out var pole);
+            zPlanePoles.Add(pole);
         }
+
+        return new Zpk(zPlaneZeros.ToArray(), zPlanePoles.ToArray(), gain);
     }
 
     /// <summary>
@@ -329,17 +331,17 @@ internal static class FilterTools
     /// As in MATLAB => zp2tf(z,p,k)
     /// As in Math.js => zpk2tf(z,p,k)
     /// </summary>
-    private static void Zpk2Tf(List<Complex> z, List<Complex> p, double k, out double[] a, out double[] b)
+    private static TransferFunction Zpk2Tf(Zpk zpk)
     {
         var num = new List<Complex> { new Complex(1, 0) };
         var den = new List<Complex> { new Complex(1, 0) };
 
-        foreach (var zero in z)
+        foreach (var zero in zpk.Z)
         {
             num = Multiply(num, new List<Complex> { new Complex(1, 0), -zero });
         }
 
-        foreach (var pole in p)
+        foreach (var pole in zpk.P)
         {
             den = Multiply(den, new List<Complex> { new Complex(1, 0), -pole });
         }
@@ -347,11 +349,14 @@ internal static class FilterTools
         //Multiply numerator with gain
         for (var i = 0; i < num.Count; i++)
         {
-            num[i] *= k;
+            num[i] *= zpk.K;
         }
 
-        a = den.Select(x => x.Real).ToArray();
-        b = num.Select(x => x.Real).ToArray();
+        var a = den.Select(x => x.Real).ToArray();
+        var b = num.Select(x => x.Real).ToArray();
+
+        var tf = new TransferFunction(b, a);
+        return tf;
     }
 
     private static List<Complex> Multiply(List<Complex> a, List<Complex> b)
