@@ -53,26 +53,23 @@ internal static class FilterTools
         var warpedLow = 2 * Math.Tan(Math.PI * freqLowCutOff / freqSampling);
         var warpedHigh = 2 * Math.Tan(Math.PI * freqHighCutOff / freqSampling);
 
-        // Initialize Zpk to work on
-        var poles = lowPassPrototype.P.ToList();
-        var zeros = lowPassPrototype.Z.ToList();
-        double gain;
-
         // Convert analogue lowPass prototype to target filter type
+        Zpk convertedZpk;
+
         switch (frequencyFilterType)
         {
             case FrequencyFilterType.LowPass:
-                gain = Convert2LowPass(warpedLow, ref poles, ref zeros, lowPassPrototype.K);
+                convertedZpk = Convert2LowPass(warpedLow, lowPassPrototype);
                 break;
             case FrequencyFilterType.HighPass:
-                gain = Convert2HighPass(warpedHigh, ref poles, ref zeros, lowPassPrototype.K);
+                convertedZpk = Convert2HighPass(warpedHigh, lowPassPrototype);
                 break;
             case FrequencyFilterType.BandPass:
-                gain = Convert2BandPass(warpedLow, warpedHigh, ref poles, ref zeros, lowPassPrototype.K);
+                convertedZpk = Convert2BandPass(warpedLow, warpedHigh, lowPassPrototype);
                 filterOrder *= 2;
                 break;
             case FrequencyFilterType.BandStop:
-                gain = Convert2BandStop(warpedLow, warpedHigh, ref poles, ref zeros, lowPassPrototype.K);
+                convertedZpk = Convert2BandStop(warpedLow, warpedHigh, lowPassPrototype);
                 filterOrder *= 2;
                 break;
             default:
@@ -80,7 +77,11 @@ internal static class FilterTools
         }
 
         // Map zeros & poles from S-plane to Z-plane
-        var preBltGain = gain;
+        var preBltGain = convertedZpk.K;
+        var gain = convertedZpk.K;
+        var poles = convertedZpk.P.ToList();
+        var zeros = convertedZpk.Z.ToList();
+
         S2Z(ref gain, ref poles, ref zeros);
         
         // Fill zeros with -1 to match size of poles
@@ -104,13 +105,14 @@ internal static class FilterTools
     /// to a lowpass filter with a specified cutoff frequency.
     /// using: lowPassPole = wc * lowPassPT_Pole
     /// </summary>
-    private static double Convert2LowPass(
-        double lowCutOff,
-        ref List<Complex> poles,
-        ref List<Complex> zeros,
-        double prototypeGain)
+    private static Zpk Convert2LowPass(double lowCutOff, Zpk lowPassPrototype)
     {
         var wc = lowCutOff;
+
+        var poles = lowPassPrototype.P.ToList();
+        var zeros = lowPassPrototype.Z.ToList();
+
+        var gain = lowPassPrototype.K * Math.Pow(wc, poles.Count - zeros.Count);
 
         for (var i = 0; i < poles.Count; i++)
         {
@@ -122,24 +124,21 @@ internal static class FilterTools
             zeros[i] *= wc;
         }
 
-        var gain = prototypeGain * Math.Pow(wc, poles.Count - zeros.Count);
-
-        return gain;
+        return new Zpk(zeros.ToArray(), poles.ToArray(), gain);
     }
 
     /// <summary>
     /// Convert analog lowPass prototype poles to highPass poles and generate zeros
     /// using:  highPassPole = wc / lowPassPT_Pole
     /// </summary>
-    private static double Convert2HighPass(
-        double highCutOff,
-        ref List<Complex> poles,
-        ref List<Complex> zeros,
-        double prototypeGain)
+    private static Zpk Convert2HighPass(double highCutOff, Zpk lowPassPrototype)
     {
         var wc = highCutOff;
 
-        var gain = HighpassAndBandstopGainCorrection(new Zpk(zeros.ToArray(), poles.ToArray(), prototypeGain));
+        var poles = lowPassPrototype.P.ToList();
+        var zeros = lowPassPrototype.Z.ToList();
+
+        var gain = HighpassAndBandstopGainCorrection(lowPassPrototype);
 
         // Convert LP poles to HP
         for (var i = 0; i < poles.Count; i++)
@@ -164,126 +163,103 @@ internal static class FilterTools
             zeros.Add(new Complex(0.0, 0.0));
         }
 
-        return gain;
+        return new Zpk(zeros.ToArray(), poles.ToArray(), gain);
     }
 
     /// <summary>
     /// Convert analog lowPass prototype poles to bandPass poles and generate zeros
     /// using:  bandPassPoles = 0.5 * bw * lowPassPT_Pole +- 0.5 * sqrt( bw^2 / lowPassPT_Pole^2 - 4 * wc^2 )
     /// </summary>
-    private static double Convert2BandPass(
-        double lowCutOff,
-        double highCutOff,
-        ref List<Complex> poles,
-        ref List<Complex> zeros,
-        double prototypeGain)
+    private static Zpk Convert2BandPass(double lowCutOff, double highCutOff, Zpk lowPassPrototype)
     {
         var bandWidth = highCutOff - lowCutOff;
         var wc = Math.Sqrt(highCutOff * lowCutOff);
 
-        var prototypesZeroCount = zeros.Count; // Is zero for butterworth, bessel, and chebyshev type 1
+        var poles = new List<Complex>();
+        var zeros = new List<Complex>();
 
         // Calculate bandpass gain
-        var gain = prototypeGain * Math.Pow(bandWidth, poles.Count - zeros.Count);
+        var gain = lowPassPrototype.K * Math.Pow(bandWidth, lowPassPrototype.P.Count - lowPassPrototype.Z.Count);
 
-        // Check for chebyshev type 2 filter and convert zeros
-        if (prototypesZeroCount != 0)
-        {
-            var tempZeros = new List<Complex>();
-            foreach (var zero in zeros)
-            {
-                if (Complex.Abs(zero) > 0)
-                {
-                    var a = 0.5 * bandWidth * zero;
-                    var b = 0.5 * Complex.Sqrt(Complex.Pow(bandWidth * zero, 2) - 4 * wc * wc);
-                    tempZeros.Add(a + b);
-                    tempZeros.Add(a - b);
-                }
-            }
-            zeros = tempZeros;
-        }
-
-        // Fill zeros
-        for (var i = prototypesZeroCount; i < poles.Count; i++)
-        {
-            zeros.Add(new Complex(0.0, 0.0));
-        }
-        
         // Convert lowPass poles to bandPass poles
-        var tempPoles = new List<Complex>();
-        foreach (var pole in poles)
+        foreach (var pole in lowPassPrototype.P)
         {
             if (Complex.Abs(pole) > 0)
             {
                 var firstTerm = pole * bandWidth * 0.5;
                 var secondTerm = 0.5 * Complex.Sqrt(Math.Pow(bandWidth, 2) * Complex.Pow(pole, 2) - 4 * Math.Pow(wc, 2));
-                tempPoles.Add(firstTerm + secondTerm);
-                tempPoles.Add(firstTerm - secondTerm); // Complex conjugate
+                poles.Add(firstTerm + secondTerm);
+                poles.Add(firstTerm - secondTerm); // Complex conjugate
+            }
+        }   
+
+        // Convert lowPass zeros to bandPass zeros
+        foreach (var zero in lowPassPrototype.Z)
+        {
+            if (Complex.Abs(zero) > 0)
+            {
+                var a = 0.5 * bandWidth * zero;
+                var b = 0.5 * Complex.Sqrt(Complex.Pow(bandWidth * zero, 2) - 4 * wc * wc);
+                zeros.Add(a + b);
+                zeros.Add(a - b); // Complex conjugate
             }
         }
-        
-        poles = tempPoles;
-        
-        return gain;
+
+        // Fill zeros
+        for (var i = lowPassPrototype.Z.Count; i < lowPassPrototype.P.Count; i++)
+        {
+            zeros.Add(new Complex(0.0, 0.0));
+        }
+
+        return new Zpk(zeros.ToArray(), poles.ToArray(), gain);
     }
     
     /// <summary>
     /// Convert analog lowPass prototype poles to bandStop poles and generate zeros
     /// using:  bandStopPoles = 0.5 * bw / lowPassPT_Pole +- 0.5 * sqrt( bw^2 / lowPassPT_Pole^2 - 4 * wc^2 )
     /// </summary>
-    private static double Convert2BandStop(
-        double lowCutOff,
-        double highCutOff,
-        ref List<Complex> poles,
-        ref List<Complex> zeros,
-        double prototypeGain)
+    private static Zpk Convert2BandStop(double lowCutOff, double highCutOff, Zpk lowPassPrototype)
     {
         var bandWidth = highCutOff - lowCutOff;
         var wc = Math.Sqrt(highCutOff * lowCutOff);
 
-        var prototypesZeroCount = zeros.Count; // Is zero for butterworth, bessel, and chebyshev type 1
+        var poles = new List<Complex>();
+        var zeros = new List<Complex>();
 
-        var gain = HighpassAndBandstopGainCorrection(new Zpk(zeros.ToArray(), poles.ToArray(), prototypeGain));
-
-        // Check for chebyshev type 2 filter and convert zeros
-        if (prototypesZeroCount != 0)
-        {
-            var tempZeros = new List<Complex>();
-            foreach (var zero in zeros)
-            {
-                if (Complex.Abs(zero) > 0)
-                {
-                    var a = 0.5 * bandWidth / zero;
-                    var b = 0.5 * Complex.Sqrt(Complex.Pow(bandWidth / zero, 2) - 4 * wc * wc);
-                    tempZeros.Add(a + b);
-                    tempZeros.Add(a - b);
-                }
-            }
-            zeros = tempZeros;
-        }
-
-        // Calc band stop zeros
-        for (var i = prototypesZeroCount; i < poles.Count; i++)
-        {
-            zeros.Add(new Complex(0.0, wc));
-            zeros.Add(new Complex(0.0, -wc)); // Complex conjugate
-        }
+        var gain = HighpassAndBandstopGainCorrection(lowPassPrototype);
 
         // Calc band stop poles
-        var tempPoles = new List<Complex>();
-        foreach (var pole in poles)
+        foreach (var pole in lowPassPrototype.P)
         {
             if (Complex.Abs(pole) > 0)
             {
                 var firstTerm = 0.5 * bandWidth / pole;
                 var secondTerm = 0.5 * Complex.Sqrt(Math.Pow(bandWidth, 2) / Complex.Pow(pole, 2) - 4 * Math.Pow(wc, 2));
-                tempPoles.Add(firstTerm + secondTerm);
-                tempPoles.Add(firstTerm - secondTerm); // Complex conjugate
+                poles.Add(firstTerm + secondTerm);
+                poles.Add(firstTerm - secondTerm); // Complex conjugate
             }
         }
-        
-        poles = tempPoles;
-        return gain;
+
+        // Convert zeros
+        foreach (var zero in lowPassPrototype.Z)
+        {
+            if (Complex.Abs(zero) > 0)
+            {
+                var a = 0.5 * bandWidth / zero;
+                var b = 0.5 * Complex.Sqrt(Complex.Pow(bandWidth / zero, 2) - 4 * wc * wc);
+                zeros.Add(a + b);
+                zeros.Add(a - b); // Complex conjugate
+            }
+        }
+
+        // Calc band stop zeros
+        for (var i = lowPassPrototype.Z.Count; i < lowPassPrototype.P.Count; i++)
+        {
+            zeros.Add(new Complex(0.0, wc));
+            zeros.Add(new Complex(0.0, -wc)); // Complex conjugate
+        }
+
+        return new Zpk(zeros.ToArray(), poles.ToArray(), gain);
     }
 
     /// <summary>
