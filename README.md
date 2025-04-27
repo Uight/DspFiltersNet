@@ -17,8 +17,12 @@ For FrequencyFilters it allows the creation of the following filter design types
 2. Bessel
 3. Chebyshev Type I
 4. Chebyshev Type II
+5. Elliptic
 
-The package supports the creation of Lowpass, Highpass, Bandpass and Bandstop filters up to order 14.
+The package supports the creation of Lowpass, Highpass, Bandpass and Bandstop filters up to order 16.
+
+The package only supports Filters and does not have other features. For more DSP features in C# you 
+may want to check out [![](https://raw.githubusercontent.com/ar1st0crat/NWaves/master/assets/logo/logo_draft.bmp)](NWaves)
 
 ### Example Usage
 
