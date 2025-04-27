@@ -10,20 +10,20 @@ internal class ChebyshevII
     /// As in MATLAB => [z,p,k] = cheb2ap(order, Rs)
     /// </summary>
     /// <param name="filterOrder"></param>
-    /// <param name="stopbandRippleDb"></param>
+    /// <param name="stopbandAttenuationDb"></param>
     /// <returns> Zeros, poles and gain of the ChebyshevII analog lowPass filter prototype of the specified order </returns>
-    public static Zpk PrototypeAnalogLowPass(int filterOrder, double stopbandRippleDb)
+    public static Zpk PrototypeAnalogLowPass(int filterOrder, double stopbandAttenuationDb)
     {
         if (filterOrder < 1 || filterOrder > 16)
         {
             throw new ArgumentOutOfRangeException(nameof(filterOrder));
         }
-        if (stopbandRippleDb <= 0)
+        if (stopbandAttenuationDb <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(stopbandRippleDb), "Stopband ripple must be positive.");
+            throw new ArgumentOutOfRangeException(nameof(stopbandAttenuationDb), "Stopband attenuation must be positive.");
         }
             
-        var epsilon = 1.0 / Math.Sqrt(Math.Pow(10, stopbandRippleDb / 10.0) - 1);
+        var epsilon = 1.0 / Math.Sqrt(Math.Pow(10, stopbandAttenuationDb / 10.0) - 1);
         var mu = FilterTools.Asinh(1.0 / epsilon) / filterOrder;
 
         var poles = new List<Complex>();
@@ -78,15 +78,15 @@ internal class ChebyshevII
     /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
     /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
     /// <param name="filterOrder"></param>
-    /// <param name="rippleDb"></param>
+    /// <param name="stopbandAttenuationDb"></param>
     /// <returns> zeros(z), poles(p) and gain(k) for the specified filter settings </returns>
     public static Zpk CalcZpk(FrequencyFilterType frequencyFilterType,
-        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double rippleDb)
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double stopbandAttenuationDb)
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
-        return filter.zpk;
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, stopbandAttenuationDb);
+        var zpk = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
+        return zpk;
     }
 
     /// <summary>
@@ -101,14 +101,13 @@ internal class ChebyshevII
     /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
     /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
     /// <param name="filterOrder"></param>
-    /// <param name="rippleDb"></param>
+    /// <param name="stopbandAttenuationDb"></param>
     /// <returns> numerator(b) and denominator(a) for the specified filter settings </returns>
     public static TransferFunction CalcTransferFunction(FrequencyFilterType frequencyFilterType,
-        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double rippleDb)
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double stopbandAttenuationDb)
     {
-        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
-        return filter.tf;
+        var zpk = CalcZpk(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, stopbandAttenuationDb);
+        var tf = FilterTools.Zpk2Tf(zpk);
+        return tf;
     }
 }

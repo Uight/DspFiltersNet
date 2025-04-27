@@ -184,8 +184,8 @@ internal class Elliptic
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
         var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, passbandRippleDb, stopbandAttenuationDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
-        return filter.zpk;
+        var zpk = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
+        return zpk;
     }
 
     /// <summary>
@@ -203,13 +203,12 @@ internal class Elliptic
     /// <param name="passbandRippleDb"></param>
     /// <param name="stopbandAttenuationDb"></param>
     /// <returns> numerator(b) and denominator(a) for the specified filter settings </returns>
-    public static TransferFunction CalcTransferFunctionCalcZpk(FrequencyFilterType frequencyFilterType,
+    public static TransferFunction CalcTransferFunction(FrequencyFilterType frequencyFilterType,
         double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double passbandRippleDb, double stopbandAttenuationDb)
     {
-        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, passbandRippleDb, stopbandAttenuationDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
-        return filter.tf;
+        var zpk = CalcZpk(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, passbandRippleDb, stopbandAttenuationDb);
+        var tf = FilterTools.Zpk2Tf(zpk);
+        return tf;
     }
 
     private static double Pow10Minus1(double x)

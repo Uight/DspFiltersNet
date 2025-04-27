@@ -1,6 +1,6 @@
 ﻿namespace DspFiltersNet.Filter;
 
-public class BesselFilterDefinition : IFilterDefinition
+public class EllipticFilterDefinition : IFilterDefinition
 {
     /// <summary>
     /// FilterType of the filter. {Lowpass, Highpass, Bandpass or Bandstop}
@@ -19,13 +19,23 @@ public class BesselFilterDefinition : IFilterDefinition
     /// Sampling frequency in Hz
     /// </summary>
     public double SamplingFrequency { get; }
+    /// <summary>
+    /// Passband ripple in db
+    /// </summary>
+    public double PassbandRipple { get; }
+    /// <summary>
+    /// Stopband attenuation in db
+    /// </summary>
+    public double StopbandAttenuation { get; }
 
-    public BesselFilterDefinition(FrequencyFilterType filterType, double cutoffFrequencyLow, double cutoffFrequencyHigh, int filterOrder, double samplingFrequency)
+    public EllipticFilterDefinition(FrequencyFilterType filterType, double cutoffFrequencyLow, double cutoffFrequencyHigh, int filterOrder, double samplingFrequency, double passbandRipple, double stopbandAttenuation)
     {
         FilterType = filterType;
         CutoffFrequencyLow = cutoffFrequencyLow;
         CutoffFrequencyHigh = cutoffFrequencyHigh;
         FilterOrder = filterOrder;
         SamplingFrequency = samplingFrequency;
+        PassbandRipple = passbandRipple;
+        StopbandAttenuation = stopbandAttenuation;
     }
 }

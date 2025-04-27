@@ -46,7 +46,7 @@ internal static class FilterTools
         }
     }
     
-    public static (Zpk zpk, TransferFunction tf) CalcFilterSettings(FrequencyFilterType frequencyFilterType, double freqSampling, 
+    public static Zpk CalcFilterSettings(FrequencyFilterType frequencyFilterType, double freqSampling, 
         double freqLowCutOff, double freqHighCutOff, int filterOrder, Zpk lowPassPrototype)
     {
         // Pre-warp frequencies
@@ -90,8 +90,40 @@ internal static class FilterTools
         var overallGain = preBltGain * (preBltGain / zPlaneZpk.K); //For highPass and bandStop preBltGain is 1. This simplifies the formula to 1 / gain
 
         var zpk = new Zpk(filledZeros.ToArray(), zPlaneZpk.P.ToArray(), overallGain);
-        var tf = Zpk2Tf(zpk);
-        return (zpk, tf);
+        return zpk;
+    }
+
+    /// <summary>
+    /// Convert poles, zeros and gain to transfer function.
+    /// As in MATLAB => zp2tf(z,p,k)
+    /// As in Math.js => zpk2tf(z,p,k)
+    /// </summary>
+    public static TransferFunction Zpk2Tf(Zpk zpk)
+    {
+        var num = new List<Complex> { new Complex(1, 0) };
+        var den = new List<Complex> { new Complex(1, 0) };
+
+        foreach (var zero in zpk.Z)
+        {
+            num = Multiply(num, new List<Complex> { new Complex(1, 0), -zero });
+        }
+
+        foreach (var pole in zpk.P)
+        {
+            den = Multiply(den, new List<Complex> { new Complex(1, 0), -pole });
+        }
+
+        //Multiply numerator with gain
+        for (var i = 0; i < num.Count; i++)
+        {
+            num[i] *= zpk.K;
+        }
+
+        var a = den.Select(x => x.Real).ToArray();
+        var b = num.Select(x => x.Real).ToArray();
+
+        var tf = new TransferFunction(b, a);
+        return tf;
     }
 
     public static double Asinh(double x) => Math.Log(x + Math.Sqrt(x * x + 1));
@@ -324,39 +356,6 @@ internal static class FilterTools
         }
 
         return new Zpk(zPlaneZeros.ToArray(), zPlanePoles.ToArray(), gain);
-    }
-
-    /// <summary>
-    /// Convert poles, zeros and gain to transfer function.
-    /// As in MATLAB => zp2tf(z,p,k)
-    /// As in Math.js => zpk2tf(z,p,k)
-    /// </summary>
-    private static TransferFunction Zpk2Tf(Zpk zpk)
-    {
-        var num = new List<Complex> { new Complex(1, 0) };
-        var den = new List<Complex> { new Complex(1, 0) };
-
-        foreach (var zero in zpk.Z)
-        {
-            num = Multiply(num, new List<Complex> { new Complex(1, 0), -zero });
-        }
-
-        foreach (var pole in zpk.P)
-        {
-            den = Multiply(den, new List<Complex> { new Complex(1, 0), -pole });
-        }
-
-        //Multiply numerator with gain
-        for (var i = 0; i < num.Count; i++)
-        {
-            num[i] *= zpk.K;
-        }
-
-        var a = den.Select(x => x.Real).ToArray();
-        var b = num.Select(x => x.Real).ToArray();
-
-        var tf = new TransferFunction(b, a);
-        return tf;
     }
 
     private static List<Complex> Multiply(List<Complex> a, List<Complex> b)

@@ -28,12 +28,20 @@ internal class FrequencyFilterInstance : FilterInstanceBase
         else if (filterDefinition is ChebyshevTypeOneFilterDefinition cheby1FilterDefinition)
         {
             tf = ChebyshevI.CalcTransferFunction(cheby1FilterDefinition.FilterType, cheby1FilterDefinition.SamplingFrequency,
-                cheby1FilterDefinition.CutoffFrequencyLow, cheby1FilterDefinition.CutoffFrequencyHigh, cheby1FilterDefinition.FilterOrder, cheby1FilterDefinition.PassbandRipple);
+                cheby1FilterDefinition.CutoffFrequencyLow, cheby1FilterDefinition.CutoffFrequencyHigh, cheby1FilterDefinition.FilterOrder, 
+                cheby1FilterDefinition.PassbandRipple);
         }
         else if (filterDefinition is ChebyshevTypeTwoFilterDefinition cheby2FilterDefinition)
         {
             tf = ChebyshevII.CalcTransferFunction(cheby2FilterDefinition.FilterType, cheby2FilterDefinition.SamplingFrequency,
-                cheby2FilterDefinition.CutoffFrequencyLow, cheby2FilterDefinition.CutoffFrequencyHigh, cheby2FilterDefinition.FilterOrder, cheby2FilterDefinition.StopbandRipple);
+                cheby2FilterDefinition.CutoffFrequencyLow, cheby2FilterDefinition.CutoffFrequencyHigh, cheby2FilterDefinition.FilterOrder, 
+                cheby2FilterDefinition.StopbandAttenuation);
+        }
+        else if (filterDefinition is EllipticFilterDefinition ellipticFilterDefinition)
+        {
+            tf = Elliptic.CalcTransferFunction(ellipticFilterDefinition.FilterType, ellipticFilterDefinition.SamplingFrequency,
+                ellipticFilterDefinition.CutoffFrequencyLow, ellipticFilterDefinition.CutoffFrequencyHigh, ellipticFilterDefinition.FilterOrder, 
+                ellipticFilterDefinition.PassbandRipple, ellipticFilterDefinition.StopbandAttenuation);
         }
         else
         {

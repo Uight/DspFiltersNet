@@ -10,21 +10,21 @@ internal class ChebyshevI
     /// As in MATLAB => [z,p,k] = cheb1ap(order, Rp)
     /// </summary>
     /// <param name="filterOrder"></param>
-    /// <param name="rippleDb"></param>
+    /// <param name="passbandRippleDb">Max ripple for the passband in db.</param>
     /// <returns> Zeros, poles and gain of the ChebyshevI analog lowPass filter prototype of the specified order </returns>
-    public static Zpk PrototypeAnalogLowPass(int filterOrder, double rippleDb)
+    public static Zpk PrototypeAnalogLowPass(int filterOrder, double passbandRippleDb)
     {
         if (filterOrder < 1 || filterOrder > 16)
         {
             throw new ArgumentOutOfRangeException(nameof(filterOrder));
         }
 
-        if (rippleDb <= 0.0)
+        if (passbandRippleDb <= 0.0)
         {
-            throw new ArgumentOutOfRangeException(nameof(rippleDb), "Ripple must be positive.");
+            throw new ArgumentOutOfRangeException(nameof(passbandRippleDb), "Passband ripple must be positive.");
         } 
 
-        var epsilon = Math.Sqrt(Math.Pow(10, rippleDb / 10.0) - 1);
+        var epsilon = Math.Sqrt(Math.Pow(10, passbandRippleDb / 10.0) - 1);
         var sinhAsinh = FilterTools.Asinh(1 / epsilon) / filterOrder;
 
         var poles = new List<Complex>();
@@ -67,15 +67,15 @@ internal class ChebyshevI
     /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
     /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
     /// <param name="filterOrder"></param>
-    /// <param name="rippleDb"></param>
+    /// <param name="passbandRippleDb">Max ripple for the passband in db.</param>
     /// <returns> zeros(z), poles(p) and gain(k) for the specified filter settings </returns>
     public static Zpk CalcZpk(FrequencyFilterType frequencyFilterType,
-        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double rippleDb)
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double passbandRippleDb)
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
-        return filter.zpk;
+        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, passbandRippleDb);
+        var zpk = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
+        return zpk;
     }
 
     /// <summary>
@@ -90,14 +90,13 @@ internal class ChebyshevI
     /// <param name="freqLowCutOff">The LowCutofff is not used if 'filterType' is 'HighPass'.</param>
     /// <param name="freqHighCutOff">The HighCutOff is not used if 'filterType' is 'LowPass'.</param>
     /// <param name="filterOrder"></param>
-    /// <param name="rippleDb"></param>
+    /// <param name="passbandRippleDb">Max ripple for the passband in db.</param>
     /// <returns> numerator(b) and denominator(a) for the specified filter settings </returns>
     public static TransferFunction CalcTransferFunction(FrequencyFilterType frequencyFilterType,
-        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double rippleDb)
+        double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder, double passbandRippleDb)
     {
-        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder, rippleDb);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
-        return filter.tf;
+        var zpk = CalcZpk(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, passbandRippleDb);
+        var tf = FilterTools.Zpk2Tf(zpk);
+        return tf;
     }
 }

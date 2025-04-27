@@ -55,8 +55,8 @@ internal static class Butterworth
     {
         FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
         var lowPassPrototype = PrototypeAnalogLowPass(filterOrder);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
-        return filter.zpk;
+        var zpk = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
+        return zpk;
     }
 
     /// <summary>
@@ -75,9 +75,8 @@ internal static class Butterworth
     public static TransferFunction CalcTransferFunction(FrequencyFilterType frequencyFilterType,
         double freqSampling, double freqLowCutOff, double freqHighCutOff, int filterOrder)
     {
-        FilterTools.FrequencyVerification(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff);
-        var lowPassPrototype = PrototypeAnalogLowPass(filterOrder);
-        var filter = FilterTools.CalcFilterSettings(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder, lowPassPrototype);
-        return filter.tf;
+        var zpk = CalcZpk(frequencyFilterType, freqSampling, freqLowCutOff, freqHighCutOff, filterOrder);
+        var tf = FilterTools.Zpk2Tf(zpk);
+        return tf;
     }
 }
